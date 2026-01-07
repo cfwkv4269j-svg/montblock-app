@@ -14,6 +14,7 @@ section{padding:15px}
 input,select{width:100%;padding:8px;margin:6px 0}
 h3{margin-top:0}
 .small{color:#666;font-size:14px}
+.edit{background:#777}
 </style>
 </head>
 
@@ -52,21 +53,22 @@ h3{margin-top:0}
 <input id="sqty" type="number" placeholder="Quantity sold">
 <input id="sprice" type="number" placeholder="Price per block (TZS)">
 <button onclick="addSale()">Save Sale</button>
+<button class="edit" onclick="editSale()">Edit Last Sale</button>
 </section>
 
 <section id="cement" class="card" style="display:none">
-<h3>Cement Purchase</h3>
+<h3>🏗️ Cement Purchase</h3>
 <input id="cbags" type="number" placeholder="Bags purchased">
 <input id="cprice" type="number" placeholder="Price per bag (TZS)">
-<p class="small">Total: TZS <span id="ctotal">0</span></p>
-<button onclick="addCement()">Save Cement Purchase</button>
+<button onclick="addCement()">Save Cement</button>
+<button class="edit" onclick="editCement()">Edit Last Cement</button>
 </section>
 
 <section id="exp" class="card" style="display:none">
-<h3>Other Expenses (Sand, Labour, Transport)</h3>
-<input id="etype" placeholder="Expense type">
-<input id="eamt" type="number" placeholder="Total amount (TZS)">
+<h3>Other Expenses</h3>
+<input id="eamt" type="number" placeholder="Amount (TZS)">
 <button onclick="addExp()">Save Expense</button>
+<button class="edit" onclick="editExp()">Edit Last Expense</button>
 </section>
 
 <script>
@@ -74,109 +76,102 @@ let data = JSON.parse(localStorage.getItem("montblock")) || {
 stock:{4:0,5:0,6:0},
 cementBags:0,
 sales:0,
-expenses:0
+expenses:0,
+last:{cement:null, sale:null, exp:null}
 };
 
-function fmt(n){
-  return Number(n).toLocaleString("en-US");
-}
+function fmt(n){return Number(n).toLocaleString("en-US");}
 
 function save(){
-  localStorage.setItem("montblock", JSON.stringify(data));
-  dashboard();
+localStorage.setItem("montblock", JSON.stringify(data));
+dashboard();
 }
 
 function show(id){
-  ["dash","prod","sale","cement","exp"].forEach(s=>{
-    document.getElementById(s).style.display="none";
-  });
-  document.getElementById(id).style.display="block";
+["dash","prod","sale","cement","exp"].forEach(s=>document.getElementById(s).style.display="none");
+document.getElementById(id).style.display="block";
 }
 
 function dashboard(){
-  let cementKg = data.cementBags * 50;
-  document.getElementById("dash").innerHTML = `
-  <h3>Dashboard</h3>
-
-  <p><b>Cement Stock</b><br>
-  🧱 ${data.cementBags} bags<br>
-  ⚖️ ${fmt(cementKg)} kg
-  </p>
-
-  <hr>
-
-  <p>🧱 4” Blocks: <b>${data.stock[4]}</b></p>
-  <p>🧱 5” Blocks: <b>${data.stock[5]}</b></p>
-  <p>🧱 6” Blocks: <b>${data.stock[6]}</b></p>
-
-  <hr>
-
-  <p>💰 Total Sales: <b>TZS ${fmt(data.sales)}</b></p>
-  <p>💸 Total Expenses: <b>TZS ${fmt(data.expenses)}</b></p>
-  <p><b>📈 Profit: TZS ${fmt(data.sales - data.expenses)}</b></p>
-  `;
+document.getElementById("dash").innerHTML = `
+<h3>Dashboard</h3>
+<p><b>🏗️ Cement Stock:</b> ${data.cementBags} bags</p>
+<hr>
+<p>🧱 4” Blocks: <b>${data.stock[4]}</b></p>
+<p>🧱 5” Blocks: <b>${data.stock[5]}</b></p>
+<p>🧱 6” Blocks: <b>${data.stock[6]}</b></p>
+<hr>
+<p>💰 Sales: <b>TZS ${fmt(data.sales)}</b></p>
+<p>💸 Expenses: <b>TZS ${fmt(data.expenses)}</b></p>
+<p><b>📈 Profit: TZS ${fmt(data.sales - data.expenses)}</b></p>
+`;
 }
 
 function addProd(){
-  let s = psize.value;
-  let q = Number(pqty.value);
-  if(q>0){
-    data.stock[s]+=q;
-    save();
-    alert("Production saved");
-    pqty.value="";
-  }
+let s=psize.value,q=Number(pqty.value);
+if(q>0){data.stock[s]+=q;save();pqty.value="";}
 }
 
 function addSale(){
-  let s = ssize.value;
-  let q = Number(sqty.value);
-  let p = Number(sprice.value);
-  if(data.stock[s] < q){
-    alert("Not enough stock");
-    return;
-  }
-  data.stock[s]-=q;
-  data.sales += q*p;
-  save();
-  alert("Sale saved");
-  sqty.value=""; 
-  sprice.value="";
+let s=ssize.value,q=Number(sqty.value),p=Number(sprice.value);
+if(data.stock[s]<q){alert("Not enough stock");return;}
+data.stock[s]-=q;
+let total=q*p;
+data.sales+=total;
+data.last.sale={s,q,p,total};
+save();sqty.value="";sprice.value="";
+}
+
+function editSale(){
+if(!data.last.sale){alert("No sale to edit");return;}
+let n=prompt("Enter NEW total sale amount",data.last.sale.total);
+if(!n)return;
+data.sales-=data.last.sale.total;
+data.sales+=Number(n);
+data.last.sale.total=Number(n);
+save();
 }
 
 function addCement(){
-  let bags = Number(cbags.value);
-  let price = Number(cprice.value);
-  if(bags<=0 || price<=0){
-    alert("Enter bags and price per bag");
-    return;
-  }
-  let total = bags * price;
-  data.cementBags += bags;
-  data.expenses += total;
-  save();
-  alert("Cement purchase saved");
-  cbags.value=""; 
-  cprice.value="";
-  document.getElementById("ctotal").innerText = "0";
+let b=Number(cbags.value),p=Number(cprice.value);
+if(b<=0||p<=0)return;
+let total=b*p;
+data.cementBags+=b;
+data.expenses+=total;
+data.last.cement={b,total};
+save();cbags.value="";cprice.value="";
+}
+
+function editCement(){
+if(!data.last.cement){alert("No cement entry");return;}
+let n=prompt("Enter NEW number of bags",data.last.cement.b);
+if(!n)return;
+data.cementBags-=data.last.cement.b;
+data.cementBags+=Number(n);
+data.expenses-=data.last.cement.total;
+data.expenses+=Number(n)*(data.last.cement.total/data.last.cement.b);
+data.last.cement.b=Number(n);
+save();
 }
 
 function addExp(){
-  let amt = Number(eamt.value);
-  if(amt>0){
-    data.expenses += amt;
-    save();
-    alert("Expense saved");
-    etype.value=""; 
-    eamt.value="";
-  }
+let a=Number(eamt.value);
+if(a>0){
+data.expenses+=a;
+data.last.exp={a};
+save();eamt.value="";
+}
 }
 
-document.getElementById("cement").addEventListener("input", ()=>{
-  let bags = Number(cbags.value);
-  let price = Number(cprice.value);
-  document.getElementById("ctotal").innerText = fmt(bags*price || 0);
-});
+function editExp(){
+if(!data.last.exp){alert("No expense to edit");return;}
+let n=prompt("Enter NEW expense amount",data.last.exp.a);
+if(!n)return;
+data.expenses-=data.last.exp.a;
+data.expenses+=Number(n);
+data.last.exp.a=Number(n);
+save();
+}
 
 dashboard();
 </script>
