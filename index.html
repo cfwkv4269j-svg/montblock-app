@@ -14,6 +14,7 @@ section{padding:15px}
 input,select{width:100%;padding:8px;margin:6px 0}
 hr{border:none;border-top:1px solid #ccc;margin:15px 0}
 .small{font-size:13px;color:#555}
+.edit{color:#0066cc;cursor:pointer;font-weight:bold}
 .alert{color:#b00020;font-weight:bold}
 </style>
 </head>
@@ -28,6 +29,7 @@ hr{border:none;border-top:1px solid #ccc;margin:15px 0}
 <button onclick="show('prod')">Production</button>
 <button onclick="show('sale')">Sales</button>
 <button onclick="show('exp')">Expenses</button>
+<button onclick="show('history')">History</button>
 <button onclick="show('report')">Reports</button>
 <button onclick="exportExcel()">Export</button>
 </nav>
@@ -75,12 +77,21 @@ hr{border:none;border-top:1px solid #ccc;margin:15px 0}
 <button onclick="saveExpense()">Save</button>
 </section>
 
+<section id="history" class="card" style="display:none">
+<h3>📜 History</h3>
+<div id="hlist"></div>
+</section>
+
 <section id="report" class="card" style="display:none"></section>
 
 <script>
 const ALERT_LEVEL = 30;
-let store = JSON.parse(localStorage.getItem("montblock3")) || {records:[]};
+let store = JSON.parse(localStorage.getItem("montblock_final")) || {records:[]};
 
+function todayStr(){
+  let d=new Date();
+  return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
+}
 function nowTime(){
   return new Date().toLocaleTimeString("en-US",{hour:'numeric',minute:'2-digit',hour12:true});
 }
@@ -88,11 +99,12 @@ function fmtDate(d){
   let x=new Date(d);
   return `${String(x.getDate()).padStart(2,'0')}-${String(x.getMonth()+1).padStart(2,'0')}-${x.getFullYear()}`;
 }
-function save(){localStorage.setItem("montblock3",JSON.stringify(store));dashboard();}
+function save(){localStorage.setItem("montblock_final",JSON.stringify(store));dashboard();}
 
 function show(id){
-["dash","cement","prod","sale","exp","report"].forEach(s=>document.getElementById(s).style.display="none");
+["dash","cement","prod","sale","exp","history","report"].forEach(s=>document.getElementById(s).style.display="none");
 document.getElementById(id).style.display="block";
+if(id==="history")renderHistory();
 if(id==="report")renderReport();
 }
 
@@ -139,9 +151,44 @@ ${cement<ALERT_LEVEL?'<p class="alert">⚠️ Low cement stock</p>':''}
 <p><b>Profit: ${(sales-exp).toLocaleString()}</b></p>`;
 }
 
+function renderHistory(){
+let today=todayStr();
+hlist.innerHTML=store.records.map((r,i)=>{
+let editable=r.date===today;
+return `
+<p class="small">
+${i+1}. ${r.type.toUpperCase()} | ${r.date} ${r.time}
+${editable?`<span class="edit" onclick="editRecord(${i})"> ✏️ Edit</span>`:''}
+</p>`;
+}).join("");
+}
+
+function editRecord(i){
+let r=store.records[i];
+if(r.type==="cement"){
+let b=prompt("Bags",r.bags);
+let p=prompt("Price per bag",r.price);
+if(b!==null&&p!==null){r.bags=+b;r.price=+p;}
+}
+if(r.type==="prod"){
+let q=prompt("Quantity",r.qty);
+if(q!==null)r.qty=+q;
+}
+if(r.type==="sale"){
+let q=prompt("Quantity",r.qty);
+let p=prompt("Price",r.price);
+if(q!==null&&p!==null){r.qty=+q;r.price=+p;}
+}
+if(r.type==="exp"){
+let a=prompt("Amount",r.amt);
+if(a!==null)r.amt=+a;
+}
+save();
+renderHistory();
+}
+
 function renderReport(){
-let today=new Date().toISOString().slice(0,10);
-let month=today.slice(0,7);
+let month=new Date().toISOString().slice(0,7);
 let blocks=0,cost=0;
 store.records.forEach(r=>{
 let d=r.date.split("-").reverse().join("-");
@@ -150,12 +197,12 @@ if(r.type==="prod")blocks+=r.qty;
 if(r.type==="cement")cost+=r.bags*r.price;
 }
 });
-let costPerBlock=blocks?Math.round(cost/blocks):0;
+let cpb=blocks?Math.round(cost/blocks):0;
 report.innerHTML=`
 <h3>📊 Monthly Report</h3>
 <p>Cement cost: ${cost.toLocaleString()}</p>
 <p>Blocks produced: ${blocks}</p>
-<p><b>Cost per block: ${costPerBlock}</b></p>`;
+<p><b>Cost per block: ${cpb}</b></p>`;
 }
 
 function exportExcel(){
