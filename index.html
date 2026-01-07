@@ -1,11 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MONTBLOCK</title>
+<title>MONTBLOCK – Block Factory Manager</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{font-family:Arial;margin:0;background:#f4f4f4}
+header{background:#000;color:#fff;padding:15px;text-align:center;font-weight:bold}
+nav{display:flex;justify-content:space-around;background:#e0e0e0;padding:10px}
+nav button{padding:10px;border:none;background:#000;color:#fff;border-radius:4px}
+section{padding:15px}
+.card{background:#fff;padding:12px;margin-bottom:12px;border-radius:6px}
+input,select{width:100%;padding:8px;margin:6px 0}
+h3{margin-top:0}
+</style>
 </head>
+
 <body>
-<h2>MONTBLOCK App is Working</h2>
-<p>If you see this page, Safari + GitHub Pages works.</p>
+
+<header>MONTBLOCK – Block Factory Manager</header>
+
+<nav>
+<button onclick="show('dash')">Dashboard</button>
+<button onclick="show('prod')">Production</button>
+<button onclick="show('sale')">Sales</button>
+<button onclick="show('exp')">Expenses</button>
+</nav>
+
+<section id="dash" class="card"></section>
+
+<section id="prod" class="card" style="display:none">
+<h3>Production</h3>
+<select id="psize">
+<option value="4">4 inch</option>
+<option value="5">5 inch</option>
+<option value="6">6 inch</option>
+</select>
+<input id="pqty" type="number" placeholder="Quantity produced">
+<button onclick="addProd()">Save Production</button>
+</section>
+
+<section id="sale" class="card" style="display:none">
+<h3>Sales</h3>
+<select id="ssize">
+<option value="4">4 inch</option>
+<option value="5">5 inch</option>
+<option value="6">6 inch</option>
+</select>
+<input id="sqty" type="number" placeholder="Quantity sold">
+<input id="sprice" type="number" placeholder="Price per block (TZS)">
+<button onclick="addSale()">Save Sale</button>
+</section>
+
+<section id="exp" class="card" style="display:none">
+<h3>Expenses</h3>
+<input id="etype" placeholder="Expense type (Cement, Labour, etc)">
+<input id="eamt" type="number" placeholder="Amount (TZS)">
+<button onclick="addExp()">Save Expense</button>
+</section>
+
+<script>
+let data = JSON.parse(localStorage.getItem("montblock")) || {
+stock:{4:0,5:0,6:0},
+sales:0,
+expenses:0
+};
+
+function save(){
+localStorage.setItem("montblock", JSON.stringify(data));
+dashboard();
+}
+
+function show(id){
+["dash","prod","sale","exp"].forEach(s=>document.getElementById(s).style.display="none");
+document.getElementById(id).style.display="block";
+}
+
+function dashboard(){
+document.getElementById("dash").innerHTML = `
+<h3>Dashboard</h3>
+<p>🧱 4” Stock: <b>${data.stock[4]}</b></p>
+<p>🧱 5” Stock: <b>${data.stock[5]}</b></p>
+<p>🧱 6” Stock: <b>${data.stock[6]}</b></p>
+<hr>
+<p>💰 Total Sales: <b>TZS ${data.sales}</b></p>
+<p>💸 Total Expenses: <b>TZS ${data.expenses}</b></p>
+<p><b>📈 Profit: TZS ${data.sales - data.expenses}</b></p>
+`;
+}
+
+function addProd(){
+let s = psize.value;
+let q = Number(pqty.value);
+if(q>0){ data.stock[s]+=q; save(); alert("Production saved"); pqty.value=""; }
+}
+
+function addSale(){
+let s = ssize.value;
+let q = Number(sqty.value);
+let p = Number(sprice.value);
+if(data.stock[s] < q){ alert("Not enough stock"); return; }
+data.stock[s]-=q;
+data.sales += q*p;
+save();
+alert("Sale saved");
+sqty.value=""; sprice.value="";
+}
+
+function addExp(){
+let a = Number(eamt.value);
+if(a>0){ data.expenses += a; save(); alert("Expense saved"); eamt.value=""; }
+}
+
+dashboard();
+</script>
+
 </body>
 </html>
