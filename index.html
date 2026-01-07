@@ -2,176 +2,151 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MONTBLOCK – Block Factory Manager</title>
+<title>MONTBLOCK – Factory Records</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body{font-family:Arial;margin:0;background:#f4f4f4}
 header{background:#000;color:#fff;padding:15px;text-align:center;font-weight:bold}
-nav{display:flex;justify-content:space-around;background:#e0e0e0;padding:10px;flex-wrap:wrap}
+nav{display:flex;flex-wrap:wrap;justify-content:space-around;background:#e0e0e0;padding:10px}
 nav button{padding:10px;border:none;background:#000;color:#fff;border-radius:4px;margin:3px}
 section{padding:15px}
 .card{background:#fff;padding:12px;margin-bottom:12px;border-radius:6px}
 input,select{width:100%;padding:8px;margin:6px 0}
-h3{margin-top:0}
-.small{color:#666;font-size:14px}
-.edit{background:#777}
+.small{font-size:13px;color:#555}
 </style>
 </head>
 
 <body>
 
-<header>MONTBLOCK – Block Factory Manager</header>
+<header>MONTBLOCK – Factory Records</header>
 
 <nav>
 <button onclick="show('dash')">Dashboard</button>
+<button onclick="show('cement')">Cement</button>
 <button onclick="show('prod')">Production</button>
 <button onclick="show('sale')">Sales</button>
-<button onclick="show('cement')">Cement</button>
 <button onclick="show('exp')">Expenses</button>
+<button onclick="show('history')">History</button>
 </nav>
 
 <section id="dash" class="card"></section>
 
+<section id="cement" class="card" style="display:none">
+<h3>🏗️ Cement IN</h3>
+<input id="cdate" type="date">
+<input id="cbags" type="number" placeholder="Bags">
+<input id="cprice" type="number" placeholder="Price per bag">
+<button onclick="saveCement()">Save</button>
+</section>
+
 <section id="prod" class="card" style="display:none">
-<h3>Production</h3>
+<h3>🧱 Block Production</h3>
+<input id="pdate" type="date">
 <select id="psize">
 <option value="4">4 inch</option>
 <option value="5">5 inch</option>
 <option value="6">6 inch</option>
 </select>
-<input id="pqty" type="number" placeholder="Quantity produced">
-<button onclick="addProd()">Save Production</button>
+<input id="pqty" type="number" placeholder="Quantity">
+<button onclick="saveProd()">Save</button>
 </section>
 
 <section id="sale" class="card" style="display:none">
-<h3>Sales</h3>
+<h3>🧱 Block Sales</h3>
+<input id="sdate" type="date">
 <select id="ssize">
 <option value="4">4 inch</option>
 <option value="5">5 inch</option>
 <option value="6">6 inch</option>
 </select>
-<input id="sqty" type="number" placeholder="Quantity sold">
-<input id="sprice" type="number" placeholder="Price per block (TZS)">
-<button onclick="addSale()">Save Sale</button>
-<button class="edit" onclick="editSale()">Edit Last Sale</button>
-</section>
-
-<section id="cement" class="card" style="display:none">
-<h3>🏗️ Cement Purchase</h3>
-<input id="cbags" type="number" placeholder="Bags purchased">
-<input id="cprice" type="number" placeholder="Price per bag (TZS)">
-<button onclick="addCement()">Save Cement</button>
-<button class="edit" onclick="editCement()">Edit Last Cement</button>
+<input id="sqty" type="number" placeholder="Quantity">
+<input id="sprice" type="number" placeholder="Price per block">
+<button onclick="saveSale()">Save</button>
 </section>
 
 <section id="exp" class="card" style="display:none">
-<h3>Other Expenses</h3>
-<input id="eamt" type="number" placeholder="Amount (TZS)">
-<button onclick="addExp()">Save Expense</button>
-<button class="edit" onclick="editExp()">Edit Last Expense</button>
+<h3>💸 Expense</h3>
+<input id="edate" type="date">
+<input id="etype" placeholder="Expense type">
+<input id="eamt" type="number" placeholder="Amount">
+<button onclick="saveExpense()">Save</button>
+</section>
+
+<section id="history" class="card" style="display:none">
+<h3>📜 History</h3>
+<div id="hlist"></div>
 </section>
 
 <script>
-let data = JSON.parse(localStorage.getItem("montblock")) || {
-stock:{4:0,5:0,6:0},
-cementBags:0,
-sales:0,
-expenses:0,
-last:{cement:null, sale:null, exp:null}
-};
+let store = JSON.parse(localStorage.getItem("montblock2")) || {records:[]};
 
-function fmt(n){return Number(n).toLocaleString("en-US");}
-
-function save(){
-localStorage.setItem("montblock", JSON.stringify(data));
-dashboard();
+function nowTime(){
+  let d=new Date();
+  return d.toLocaleTimeString("en-US",{hour:'numeric',minute:'2-digit',hour12:true});
 }
+function fmtDate(d){
+  let x=new Date(d);
+  return `${String(x.getDate()).padStart(2,'0')}-${String(x.getMonth()+1).padStart(2,'0')}-${x.getFullYear()}`;
+}
+function save(){localStorage.setItem("montblock2",JSON.stringify(store));dashboard();}
 
 function show(id){
-["dash","prod","sale","cement","exp"].forEach(s=>document.getElementById(s).style.display="none");
+["dash","cement","prod","sale","exp","history"].forEach(s=>document.getElementById(s).style.display="none");
 document.getElementById(id).style.display="block";
+if(id==="history")renderHistory();
+}
+
+function addRecord(r){store.records.push(r);save();}
+
+function saveCement(){
+addRecord({type:"cement",bags:+cbags.value,price:+cprice.value,
+date:fmtDate(cdate.value),time:nowTime()});
+cbags.value="";cprice.value="";
+}
+
+function saveProd(){
+addRecord({type:"prod",size:psize.value,qty:+pqty.value,
+date:fmtDate(pdate.value),time:nowTime()});
+pqty.value="";
+}
+
+function saveSale(){
+addRecord({type:"sale",size:ssize.value,qty:+sqty.value,price:+sprice.value,
+date:fmtDate(sdate.value),time:nowTime()});
+sqty.value="";sprice.value="";
+}
+
+function saveExpense(){
+addRecord({type:"exp",name:etype.value,amt:+eamt.value,
+date:fmtDate(edate.value),time:nowTime()});
+etype.value="";eamt.value="";
 }
 
 function dashboard(){
-document.getElementById("dash").innerHTML = `
-<h3>Dashboard</h3>
-<p><b>🏗️ Cement Stock:</b> ${data.cementBags} bags</p>
-<hr>
-<p>🧱 4” Blocks: <b>${data.stock[4]}</b></p>
-<p>🧱 5” Blocks: <b>${data.stock[5]}</b></p>
-<p>🧱 6” Blocks: <b>${data.stock[6]}</b></p>
-<hr>
-<p>💰 Sales: <b>TZS ${fmt(data.sales)}</b></p>
-<p>💸 Expenses: <b>TZS ${fmt(data.expenses)}</b></p>
-<p><b>📈 Profit: TZS ${fmt(data.sales - data.expenses)}</b></p>
-`;
+let cement=0,sales=0,exp=0,stock={4:0,5:0,6:0};
+store.records.forEach(r=>{
+if(r.type==="cement")cement+=r.bags,exp+=r.bags*r.price;
+if(r.type==="prod")stock[r.size]+=r.qty;
+if(r.type==="sale")stock[r.size]-=r.qty,sales+=r.qty*r.price;
+if(r.type==="exp")exp+=r.amt;
+});
+dash.innerHTML=`
+<p><b>🏗️ Cement:</b> ${cement} bags</p>
+<p>🧱 4": ${stock[4]} | 5": ${stock[5]} | 6": ${stock[6]}</p>
+<p>💰 Sales: ${sales.toLocaleString()}</p>
+<p>💸 Expenses: ${exp.toLocaleString()}</p>
+<p><b>📈 Profit: ${(sales-exp).toLocaleString()}</b></p>`;
 }
 
-function addProd(){
-let s=psize.value,q=Number(pqty.value);
-if(q>0){data.stock[s]+=q;save();pqty.value="";}
+function renderHistory(){
+hlist.innerHTML=store.records.map((r,i)=>`
+<p class="small">${i+1}. ${r.type.toUpperCase()} | ${r.date} ${r.time}</p>
+`).join("");
 }
 
-function addSale(){
-let s=ssize.value,q=Number(sqty.value),p=Number(sprice.value);
-if(data.stock[s]<q){alert("Not enough stock");return;}
-data.stock[s]-=q;
-let total=q*p;
-data.sales+=total;
-data.last.sale={s,q,p,total};
-save();sqty.value="";sprice.value="";
-}
-
-function editSale(){
-if(!data.last.sale){alert("No sale to edit");return;}
-let n=prompt("Enter NEW total sale amount",data.last.sale.total);
-if(!n)return;
-data.sales-=data.last.sale.total;
-data.sales+=Number(n);
-data.last.sale.total=Number(n);
-save();
-}
-
-function addCement(){
-let b=Number(cbags.value),p=Number(cprice.value);
-if(b<=0||p<=0)return;
-let total=b*p;
-data.cementBags+=b;
-data.expenses+=total;
-data.last.cement={b,total};
-save();cbags.value="";cprice.value="";
-}
-
-function editCement(){
-if(!data.last.cement){alert("No cement entry");return;}
-let n=prompt("Enter NEW number of bags",data.last.cement.b);
-if(!n)return;
-data.cementBags-=data.last.cement.b;
-data.cementBags+=Number(n);
-data.expenses-=data.last.cement.total;
-data.expenses+=Number(n)*(data.last.cement.total/data.last.cement.b);
-data.last.cement.b=Number(n);
-save();
-}
-
-function addExp(){
-let a=Number(eamt.value);
-if(a>0){
-data.expenses+=a;
-data.last.exp={a};
-save();eamt.value="";
-}
-}
-
-function editExp(){
-if(!data.last.exp){alert("No expense to edit");return;}
-let n=prompt("Enter NEW expense amount",data.last.exp.a);
-if(!n)return;
-data.expenses-=data.last.exp.a;
-data.expenses+=Number(n);
-data.last.exp.a=Number(n);
-save();
-}
+["cdate","pdate","sdate","edate"].forEach(id=>{
+document.getElementById(id).value=new Date().toISOString().split("T")[0];
+});
 
 dashboard();
 </script>
