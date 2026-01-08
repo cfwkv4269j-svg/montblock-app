@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MONTBLOCK – Cement System</title>
+<title>MONTBLOCK – Factory System</title>
 
 <style>
 body{font-family:Arial;margin:0;background:#f4f4f4}
@@ -11,28 +11,32 @@ nav{display:flex;justify-content:space-around;background:#ddd;padding:10px}
 nav button{padding:10px;border:none;background:#000;color:#fff;border-radius:4px}
 section{display:none;padding:15px}
 .card{background:#fff;padding:15px;border-radius:6px}
-input{width:100%;padding:8px;margin:6px 0}
+input,select{width:100%;padding:8px;margin:6px 0}
 hr{margin:15px 0}
 </style>
 </head>
 
 <body>
 
-<header>MONTBLOCK – Cement Manager</header>
+<header>MONTBLOCK – Factory System</header>
 
 <nav>
 <button onclick="show('dash')">Dashboard</button>
 <button onclick="show('cement')">Cement</button>
+<button onclick="show('prod')">Production</button>
 </nav>
 
 <section id="dash" class="card">
 <h3>Dashboard</h3>
 <p><b>Cement Stock:</b> <span id="cementStock">0</span> bags</p>
+<hr>
+<p><b>4″ Blocks:</b> <span id="b4">0</span></p>
+<p><b>5″ Blocks:</b> <span id="b5">0</span></p>
+<p><b>6″ Blocks:</b> <span id="b6">0</span></p>
 </section>
 
 <section id="cement" class="card">
 <h3>Cement IN</h3>
-
 <input type="number" id="inBags" placeholder="Bags purchased">
 <input type="number" id="inPrice" placeholder="Price per bag">
 <button onclick="cementIn()">Save Cement IN</button>
@@ -40,15 +44,28 @@ hr{margin:15px 0}
 <hr>
 
 <h3>Cement OUT</h3>
-
 <input type="number" id="outBags" placeholder="Bags used">
 <button onclick="cementOut()">Save Cement OUT</button>
 </section>
 
+<section id="prod" class="card">
+<h3>Block Production</h3>
+
+<select id="pSize">
+<option value="4">4 inch blocks</option>
+<option value="5">5 inch blocks</option>
+<option value="6">6 inch blocks</option>
+</select>
+
+<input type="number" id="pQty" placeholder="Quantity produced">
+<button onclick="saveProduction()">Save Production</button>
+</section>
+
 <script>
-let store = JSON.parse(localStorage.getItem("montblock_cement_v1")) || {
+let store = JSON.parse(localStorage.getItem("montblock_factory_v2")) || {
   cementIn: [],
-  cementOut: []
+  cementOut: [],
+  production: []
 };
 
 function show(id){
@@ -57,55 +74,55 @@ function show(id){
 }
 
 function save(){
-  localStorage.setItem("montblock_cement_v1", JSON.stringify(store));
+  localStorage.setItem("montblock_factory_v2", JSON.stringify(store));
   updateDashboard();
 }
 
 function cementIn(){
   let bags = Number(inBags.value);
   let price = Number(inPrice.value);
+  if(bags<=0 || price<=0){ alert("Enter valid numbers"); return; }
 
-  if(bags<=0 || price<=0){
-    alert("Enter valid numbers");
-    return;
-  }
-
-  store.cementIn.push({
-    bags: bags,
-    price: price,
-    time: new Date().toLocaleString()
-  });
-
-  inBags.value="";
-  inPrice.value="";
+  store.cementIn.push({bags,price,time:new Date().toLocaleString()});
+  inBags.value=""; inPrice.value="";
   save();
 }
 
 function cementOut(){
   let bags = Number(outBags.value);
+  if(bags<=0){ alert("Enter valid bags"); return; }
 
-  if(bags<=0){
-    alert("Enter valid bags");
-    return;
-  }
-
-  store.cementOut.push({
-    bags: bags,
-    time: new Date().toLocaleString()
-  });
-
+  store.cementOut.push({bags,time:new Date().toLocaleString()});
   outBags.value="";
   save();
 }
 
+function saveProduction(){
+  let size = pSize.value;
+  let qty = Number(pQty.value);
+  if(qty<=0){ alert("Enter valid quantity"); return; }
+
+  store.production.push({size,qty,time:new Date().toLocaleString()});
+  pQty.value="";
+  save();
+}
+
 function updateDashboard(){
-  let totalIn = 0;
-  let totalOut = 0;
+  let cin=0, cout=0;
+  store.cementIn.forEach(c=>cin+=c.bags);
+  store.cementOut.forEach(c=>cout+=c.bags);
+  cementStock.innerText = cin - cout;
 
-  store.cementIn.forEach(c=>totalIn+=c.bags);
-  store.cementOut.forEach(c=>totalOut+=c.bags);
+  let b4=0,b5=0,b6=0;
+  store.production.forEach(p=>{
+    if(p.size=="4") b4+=p.qty;
+    if(p.size=="5") b5+=p.qty;
+    if(p.size=="6") b6+=p.qty;
+  });
 
-  document.getElementById("cementStock").innerText = totalIn - totalOut;
+  document.getElementById("b4").innerText=b4;
+  document.getElementById("b5").innerText=b5;
+  document.getElementById("b6").innerText=b6;
 }
 
 updateDashboard();
