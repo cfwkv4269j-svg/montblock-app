@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MONTBLOCK – Fresh Start</title>
+<style>
+body{font-family:Arial;margin:0;padding:20px}
+button{padding:12px;margin:5px}
+</style>
+</head>
+<body>
+
+<h2 id="status">MONTBLOCK – Fresh Start</h2>
+
+<button onclick="go('Dashboard')">Dashboard</button>
+<button onclick="go('Cement')">Cement</button>
+<button onclick="go('Sales')">Sales</button>
+
+<p id="screen">Tap a button</p>
+
+<script>
+function go(name){
+  document.getElementById("screen").innerText = name + " is working ✅";
+}
+</script>
+
+</body>
+</html>
