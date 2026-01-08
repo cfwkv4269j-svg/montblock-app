@@ -24,15 +24,23 @@ hr{margin:15px 0}
 <button onclick="show('dash')">Dashboard</button>
 <button onclick="show('cement')">Cement</button>
 <button onclick="show('prod')">Production</button>
+<button onclick="show('sales')">Sales</button>
 </nav>
 
 <section id="dash" class="card">
 <h3>Dashboard</h3>
+
 <p><b>Cement Stock:</b> <span id="cementStock">0</span> bags</p>
+
 <hr>
+
 <p><b>4″ Blocks:</b> <span id="b4">0</span></p>
 <p><b>5″ Blocks:</b> <span id="b5">0</span></p>
 <p><b>6″ Blocks:</b> <span id="b6">0</span></p>
+
+<hr>
+
+<p><b>Total Sales:</b> TZS <span id="totalSales">0</span></p>
 </section>
 
 <section id="cement" class="card">
@@ -61,11 +69,26 @@ hr{margin:15px 0}
 <button onclick="saveProduction()">Save Production</button>
 </section>
 
+<section id="sales" class="card">
+<h3>Block Sales</h3>
+
+<select id="sSize">
+<option value="4">4 inch blocks</option>
+<option value="5">5 inch blocks</option>
+<option value="6">6 inch blocks</option>
+</select>
+
+<input type="number" id="sQty" placeholder="Quantity sold">
+<input type="number" id="sPrice" placeholder="Price per block">
+<button onclick="saveSale()">Save Sale</button>
+</section>
+
 <script>
-let store = JSON.parse(localStorage.getItem("montblock_factory_v2")) || {
+let store = JSON.parse(localStorage.getItem("montblock_factory_v3")) || {
   cementIn: [],
   cementOut: [],
-  production: []
+  production: [],
+  sales: []
 };
 
 function show(id){
@@ -74,7 +97,7 @@ function show(id){
 }
 
 function save(){
-  localStorage.setItem("montblock_factory_v2", JSON.stringify(store));
+  localStorage.setItem("montblock_factory_v3", JSON.stringify(store));
   updateDashboard();
 }
 
@@ -107,6 +130,29 @@ function saveProduction(){
   save();
 }
 
+function saveSale(){
+  let size = sSize.value;
+  let qty = Number(sQty.value);
+  let price = Number(sPrice.value);
+
+  if(qty<=0 || price<=0){
+    alert("Enter valid sale values");
+    return;
+  }
+
+  store.sales.push({
+    size,
+    qty,
+    price,
+    total: qty * price,
+    time: new Date().toLocaleString()
+  });
+
+  sQty.value="";
+  sPrice.value="";
+  save();
+}
+
 function updateDashboard(){
   let cin=0, cout=0;
   store.cementIn.forEach(c=>cin+=c.bags);
@@ -119,10 +165,19 @@ function updateDashboard(){
     if(p.size=="5") b5+=p.qty;
     if(p.size=="6") b6+=p.qty;
   });
+  store.sales.forEach(s=>{
+    if(s.size=="4") b4-=s.qty;
+    if(s.size=="5") b5-=s.qty;
+    if(s.size=="6") b6-=s.qty;
+  });
 
   document.getElementById("b4").innerText=b4;
   document.getElementById("b5").innerText=b5;
   document.getElementById("b6").innerText=b6;
+
+  let totalSales = 0;
+  store.sales.forEach(s=>totalSales+=s.total);
+  document.getElementById("totalSales").innerText = totalSales.toLocaleString();
 }
 
 updateDashboard();
