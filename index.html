@@ -245,6 +245,10 @@ function importJSON(){
 });
 
 dashboard();
+// FORCE INITIAL LOAD & SAFARI FIX
+document.addEventListener("DOMContentLoaded", function () {
+  show("dash");
+});
 </script>
 
 </body>
