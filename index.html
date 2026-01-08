@@ -1,24 +1,24 @@
-<!-- v6.1 stable backup -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
 <title>MONTBLOCK – Factory System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body{font-family:Arial;margin:0;background:#f4f4f4}
-header{background:#000;color:#fff;padding:15px;text-align:center;font-weight:bold}
-nav{display:flex;flex-wrap:wrap;justify-content:space-around;background:#ddd;padding:10px}
-nav button{padding:10px;border:none;background:#000;color:#fff;border-radius:4px;margin:3px}
+header{background:#000;color:#fff;padding:15px;text-align:center}
+nav{display:flex;flex-wrap:wrap;justify-content:center;background:#ddd;padding:10px}
+nav button{padding:10px;margin:5px;border:none;background:#000;color:#fff;border-radius:4px}
 section{display:none;padding:15px}
-.card{background:#fff;padding:15px;border-radius:6px}
+.card{background:#fff;padding:15px;border-radius:6px;margin-bottom:15px}
 input,select,button{width:100%;padding:8px;margin:6px 0}
 hr{margin:15px 0}
+.item{border-bottom:1px solid #ddd;padding:8px 0}
+.small{font-size:13px;color:#555}
 .sellBtn{background:#0a7d0a;color:#fff}
 .expBtn{background:#b00020;color:#fff}
 .exportBtn{background:#004aad;color:#fff}
-.item{border-bottom:1px solid #ddd;padding:8px 0}
-.small{font-size:13px;color:#555}
 @media print{
  nav,button{display:none}
  body{background:#fff}
@@ -34,181 +34,196 @@ hr{margin:15px 0}
 <button onclick="show('dash')">Dashboard</button>
 <button onclick="show('cement')">Cement</button>
 <button onclick="show('prod')">Production</button>
-<button onclick="show('sales')">Sales</button>
+<button onclick="show('sale')">Sales</button>
 <button onclick="show('exp')">Expenses</button>
 <button onclick="show('history')">History</button>
-<button onclick="show('reports')">Reports</button>
+<button onclick="show('report')">Reports</button>
 </nav>
 
-<section id="dash" class="card">
-<h3>Dashboard</h3>
-<p><b>Cement Stock:</b> <span id="cementStock">0</span> bags</p>
-<hr>
-<p><b>4″ Blocks:</b> <span id="b4">0</span></p>
-<p><b>5″ Blocks:</b> <span id="b5">0</span></p>
-<p><b>6″ Blocks:</b> <span id="b6">0</span></p>
-<hr>
-<p><b>Total Sales:</b> TZS <span id="totalSales">0</span></p>
-<p><b>Total Expenses:</b> TZS <span id="totalExpenses">0</span></p>
-<hr>
-<p><b>PROFIT:</b> TZS <span id="profit">0</span></p>
-</section>
+<section id="dash" class="card"></section>
 
 <section id="cement" class="card">
 <h3>Cement IN</h3>
-<input type="date" id="cinDate">
-<input type="number" id="cinBags" placeholder="Bags purchased">
-<input type="number" id="cinPrice" placeholder="Price per bag">
-<button onclick="cementIn()">Save Cement IN</button>
+<input id="cin_bags" type="number" placeholder="Bags">
+<input id="cin_price" type="number" placeholder="Price per bag">
+<button onclick="saveCementIn()">Save Cement IN</button>
 <hr>
 <h3>Cement OUT</h3>
-<input type="date" id="coutDate">
-<input type="number" id="coutBags" placeholder="Bags used">
-<button onclick="cementOut()">Save Cement OUT</button>
+<input id="cout_bags" type="number" placeholder="Bags used">
+<button onclick="saveCementOut()">Save Cement OUT</button>
 </section>
 
 <section id="prod" class="card">
 <h3>Production</h3>
-<input type="date" id="pDate">
-<select id="pSize">
-<option value="4">4 inch</option>
-<option value="5">5 inch</option>
-<option value="6">6 inch</option>
+<select id="psize">
+<option value="4">4"</option>
+<option value="5">5"</option>
+<option value="6">6"</option>
 </select>
-<input type="number" id="pQty" placeholder="Quantity">
+<input id="pqty" type="number" placeholder="Quantity">
 <button onclick="saveProduction()">Save Production</button>
 </section>
 
-<section id="sales" class="card">
+<section id="sale" class="card">
 <h3>Sales</h3>
-<input type="date" id="sDate">
-<select id="sSize">
-<option value="4">4 inch</option>
-<option value="5">5 inch</option>
-<option value="6">6 inch</option>
+<select id="ssize">
+<option value="4">4"</option>
+<option value="5">5"</option>
+<option value="6">6"</option>
 </select>
-<input type="number" id="sQty" placeholder="Quantity sold">
-<input type="number" id="sPrice" placeholder="Price per block">
-<button class="sellBtn" onclick="sellBlocks()">Sell Blocks</button>
+<input id="sqty" type="number" placeholder="Quantity">
+<input id="sprice" type="number" placeholder="Price per block">
+<button class="sellBtn" onclick="saveSale()">Save Sale</button>
 </section>
 
 <section id="exp" class="card">
-<h3>Expenses</h3>
-<input type="date" id="eDate">
-<input id="eName" placeholder="Expense name">
-<input type="number" id="eAmt" placeholder="Amount">
+<h3>Expense</h3>
+<input id="ename" placeholder="Expense name">
+<input id="eamt" type="number" placeholder="Amount">
 <button class="expBtn" onclick="saveExpense()">Save Expense</button>
 </section>
 
 <section id="history" class="card">
-<h3>History</h3>
-<p class="small">Use History to edit or delete records</p>
+<h3>History (Latest First)</h3>
+<div id="hlist"></div>
 </section>
 
-<section id="reports" class="card">
+<section id="report" class="card">
 <h3>Reports</h3>
-
-<label>From date</label>
+<label>From</label>
 <input type="date" id="rFrom">
-
-<label>To date</label>
+<label>To</label>
 <input type="date" id="rTo">
-
 <button onclick="generateReport()">Generate Report</button>
-
 <hr>
-
-<div id="reportArea">
-  <div id="reportSummary"></div>
-  <hr>
-  <div id="reportDetails"></div>
-</div>
-
+<div id="reportSummary"></div>
 <hr>
-
+<div id="reportDetails"></div>
 <button class="exportBtn" onclick="window.print()">Print / Save PDF</button>
 <button class="exportBtn" onclick="shareReport()">Share Report</button>
 </section>
 
 <script>
-let store = JSON.parse(localStorage.getItem("montblock_v55")) || {
- cementIn:[], cementOut:[], production:[], sales:[], expenses:[]
+let store=JSON.parse(localStorage.getItem("montblock_v7"))||{
+ cement:0,
+ blocks:{4:0,5:0,6:0},
+ cementIn:[],cementOut:[],
+ production:[],sales:[],expenses:[]
 };
 
-function today(){return new Date().toISOString().slice(0,10);}
-document.querySelectorAll("input[type=date]").forEach(i=>i.value=today());
+function save(){localStorage.setItem("montblock_v7",JSON.stringify(store));renderDash();}
+
+function today(){return new Date().toDateString()}
+function now(){return new Date().toLocaleTimeString()}
 
 function show(id){
- document.querySelectorAll("section").forEach(s=>s.style.display="none");
- document.getElementById(id).style.display="block";
+["dash","cement","prod","sale","exp","history","report"].forEach(s=>document.getElementById(s).style.display="none");
+document.getElementById(id).style.display="block";
+if(id==="history")renderHistory();
+if(id==="report")renderDash();
 }
 
-function save(){localStorage.setItem("montblock_v55",JSON.stringify(store));updateDash();}
-
-function cementIn(){store.cementIn.push({bags:+cinBags.value,price:+cinPrice.value,txDate:cinDate.value});save();}
-function cementOut(){store.cementOut.push({bags:+coutBags.value,txDate:coutDate.value});save();}
-function saveProduction(){store.production.push({size:pSize.value,qty:+pQty.value,txDate:pDate.value});save();}
-function sellBlocks(){store.sales.push({size:sSize.value,qty:+sQty.value,price:+sPrice.value,total:sQty.value*sPrice.value,txDate:sDate.value});save();}
-function saveExpense(){store.expenses.push({name:eName.value,amt:+eAmt.value,txDate:eDate.value});save();}
-
-function updateDash(){
- let cin=0,cout=0;
- store.cementIn.forEach(r=>cin+=r.bags);
- store.cementOut.forEach(r=>cout+=r.bags);
- cementStock.innerText=cin-cout;
-
- let b4=0,b5=0,b6=0;
- store.production.forEach(r=>{if(r.size=="4")b4+=r.qty;if(r.size=="5")b5+=r.qty;if(r.size=="6")b6+=r.qty;});
- store.sales.forEach(r=>{if(r.size=="4")b4-=r.qty;if(r.size=="5")b5-=r.qty;if(r.size=="6")b6-=r.qty;});
- b4.innerText=b4;b5.innerText=b5;b6.innerText=b6;
-
- let ts=0,te=0;
- store.sales.forEach(r=>ts+=r.total);
- store.expenses.forEach(r=>te+=r.amt);
- totalSales.innerText=ts.toLocaleString();
- totalExpenses.innerText=te.toLocaleString();
- profit.innerText=(ts-te).toLocaleString();
+function renderDash(){
+document.getElementById("dash").innerHTML=`
+<h3>Dashboard</h3>
+<b>Cement Stock:</b> ${store.cement} bags<hr>
+4" Blocks: ${store.blocks[4]}<br>
+5" Blocks: ${store.blocks[5]}<br>
+6" Blocks: ${store.blocks[6]}
+`;
 }
 
-function inRange(d,f,t){return d>=f && d<=t;}
+function saveCementIn(){
+let b=+cin_bags.value,p=+cin_price.value;
+store.cement+=b;
+store.cementIn.push({bags:b,price:p,date:today(),time:now()});
+cin_bags.value=cin_price.value="";
+save();
+}
+
+function saveCementOut(){
+let b=+cout_bags.value;
+store.cement-=b;
+store.cementOut.push({bags:b,date:today(),time:now()});
+cout_bags.value="";
+save();
+}
+
+function saveProduction(){
+let s=psize.value,q=+pqty.value;
+store.blocks[s]+=q;
+store.production.push({size:s,qty:q,date:today()});
+pqty.value="";
+save();
+}
+
+function saveSale(){
+let s=ssize.value,q=+sqty.value,p=+sprice.value;
+store.blocks[s]-=q;
+store.sales.push({size:s,qty:q,total:q*p,date:today()});
+sqty.value=sprice.value="";
+save();
+}
+
+function saveExpense(){
+let n=ename.value,a=+eamt.value;
+store.expenses.push({name:n,amt:a,date:today()});
+ename.value=eamt.value="";
+save();
+}
+
+function renderHistory(){
+let h=document.getElementById("hlist");
+h.innerHTML="";
+[...store.expenses.map(r=>({t:"Expense",d:`${r.name} – ${r.amt}`,date:r.date})),
+ ...store.production.map(r=>({t:"Production",d:`${r.size}" Qty ${r.qty}`,date:r.date})),
+ ...store.cementIn.map(r=>({t:"Cement IN",d:`Bags ${r.bags} @ ${r.price}`,date:r.date})),
+ ...store.sales.map(r=>({t:"Sale",d:`${r.size}" Qty ${r.qty} – ${r.total}`,date:r.date}))
+].reverse().forEach(r=>{
+h.innerHTML+=`<div class="item"><b>${r.t}</b><br>${r.d}<br><span class="small">${r.date}</span></div>`;
+});
+}
 
 function generateReport(){
- let f=rFrom.value,t=rTo.value;
- let sales=store.sales.filter(r=>inRange(r.txDate,f,t));
- let exp=store.expenses.filter(r=>inRange(r.txDate,f,t));
- let prod=store.production.filter(r=>inRange(r.txDate,f,t));
- let cout=store.cementOut.filter(r=>inRange(r.txDate,f,t));
+let sales=store.sales,exp=store.expenses,prod=store.production,cin=store.cementIn;
+let totalSales=0,totalExp=0,cementCost=0;
+let blocks={4:0,5:0,6:0},sold={4:0,5:0,6:0},salesVal={4:0,5:0,6:0};
 
- let ts=0,te=0,b4=0,b5=0,b6=0,cu=0;
- sales.forEach(r=>{ts+=r.total;if(r.size=="4")b4+=r.qty;if(r.size=="5")b5+=r.qty;if(r.size=="6")b6+=r.qty;});
- exp.forEach(r=>te+=r.amt);
- cout.forEach(r=>cu+=r.bags);
+cin.forEach(r=>cementCost+=r.bags*r.price);
+exp.forEach(r=>totalExp+=r.amt);
+prod.forEach(r=>blocks[r.size]+=r.qty);
+sales.forEach(r=>{
+ sold[r.size]+=r.qty;
+ salesVal[r.size]+=r.total;
+ totalSales+=r.total;
+});
 
- reportSummary.innerHTML=`
- <b>Summary</b><br>
- Sales: TZS ${ts.toLocaleString()}<br>
- Expenses: TZS ${te.toLocaleString()}<br>
- Profit: TZS ${(ts-te).toLocaleString()}<br>
- Blocks sold: 4″ ${b4}, 5″ ${b5}, 6″ ${b6}<br>
- Cement used: ${cu} bags
- `;
+let totalCost=cementCost+totalExp;
+let totalBlocks=blocks[4]+blocks[5]+blocks[6];
+let costPerBlock=totalBlocks?totalCost/totalBlocks:0;
 
- reportDetails.innerHTML="<b>Details</b>";
- sales.forEach(r=>reportDetails.innerHTML+=`<div class="item">Sale ${r.size}″ Qty ${r.qty} – ${r.total.toLocaleString()}</div>`);
- exp.forEach(r=>reportDetails.innerHTML+=`<div class="item">Expense ${r.name} – ${r.amt.toLocaleString()}</div>`);
- prod.forEach(r=>reportDetails.innerHTML+=`<div class="item">Production ${r.size}″ Qty ${r.qty}</div>`);
+let p4=sold[4]?salesVal[4]/sold[4]-costPerBlock:0;
+let p5=sold[5]?salesVal[5]/sold[5]-costPerBlock:0;
+let p6=sold[6]?salesVal[6]/sold[6]-costPerBlock:0;
+
+reportSummary.innerHTML=`
+<b>Summary</b><br>
+Sales: ${totalSales}<br>
+Expenses: ${totalExp}<br>
+Profit: ${totalSales-totalCost}<br><br>
+<b>Profit per block</b><br>
+4": ${p4.toFixed(0)}<br>
+5": ${p5.toFixed(0)}<br>
+6": ${p6.toFixed(0)}
+`;
 }
 
-async function shareReport(){
- if(!navigator.share){
-   alert("Sharing not supported on this device");
-   return;
- }
- let text=document.getElementById("reportArea").innerText;
- await navigator.share({title:"MONTBLOCK Report",text:text});
+function shareReport(){
+navigator.share({text:document.getElementById("reportSummary").innerText});
 }
 
-updateDash();show("dash");
+renderDash();
+show('dash');
 </script>
 
 </body>
