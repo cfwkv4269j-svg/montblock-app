@@ -8,274 +8,182 @@
 <style>
 body{font-family:Arial;margin:0;background:#f4f4f4}
 header{background:#000;color:#fff;padding:15px;text-align:center;font-weight:bold}
-nav{display:flex;flex-wrap:wrap;justify-content:space-around;background:#ddd;padding:10px}
-nav button{padding:10px;border:none;background:#000;color:#fff;border-radius:4px;margin:3px}
+nav{display:flex;flex-wrap:wrap;justify-content:center;background:#ddd}
+nav button{padding:12px;margin:6px;border:none;background:#000;color:#fff;border-radius:6px}
 section{display:none;padding:15px}
-.card{background:#fff;padding:15px;border-radius:6px}
-input,select,button{width:100%;padding:8px;margin:6px 0}
+.card{background:#fff;padding:15px;border-radius:6px;margin-bottom:15px}
+input,select,button{width:100%;padding:10px;margin:6px 0}
 hr{margin:15px 0}
+.item{border-bottom:1px solid #ddd;padding:8px 0}
+.small{font-size:13px;color:#555}
 .sellBtn{background:#0a7d0a;color:#fff}
 .expBtn{background:#b00020;color:#fff}
 .exportBtn{background:#004aad;color:#fff}
-.item{border-bottom:1px solid #ddd;padding:8px 0}
-.small{font-size:13px;color:#555}
+
+/* ✅ FIX: make date inputs visible on mobile */
+input[type="date"]{
+  background:#fff !important;
+  color:#000 !important;
+  opacity:1 !important;
+  border:1px solid #ccc;
+}
+
 @media print{
- nav,button{display:none}
- body{background:#fff}
+  nav,button{display:none}
+  body{background:#fff}
 }
 </style>
 </head>
 
 <body>
-
 <header>MONTBLOCK – Factory System</header>
 
 <nav>
 <button onclick="show('dash')">Dashboard</button>
 <button onclick="show('cement')">Cement</button>
 <button onclick="show('prod')">Production</button>
-<button onclick="show('sales')">Sales</button>
+<button onclick="show('sale')">Sales</button>
 <button onclick="show('exp')">Expenses</button>
 <button onclick="show('history')">History</button>
-<button onclick="show('reports')">Reports</button>
+<button onclick="show('report')">Reports</button>
 </nav>
 
-<section id="dash" class="card">
-<h3>Dashboard</h3>
-<p><b>Cement Stock:</b> <span id="cementStock">0</span> bags</p>
-<hr>
-<p><b>4″ Blocks:</b> <span id="b4">0</span></p>
-<p><b>5″ Blocks:</b> <span id="b5">0</span></p>
-<p><b>6″ Blocks:</b> <span id="b6">0</span></p>
-<hr>
-<p><b>Total Sales:</b> TZS <span id="totalSales">0</span></p>
-<p><b>Total Expenses:</b> TZS <span id="totalExpenses">0</span></p>
-<hr>
-<p><b>PROFIT:</b> TZS <span id="profit">0</span></p>
-</section>
+<section id="dash" class="card"></section>
 
 <section id="cement" class="card">
 <h3>Cement IN</h3>
-<input type="date" id="cinDate">
-<input type="number" id="cinBags" placeholder="Bags purchased">
-<input type="number" id="cinPrice" placeholder="Price per bag">
+<input type="date" id="cin_date">
+<input id="cin_bags" type="number" placeholder="Bags purchased">
+<input id="cin_price" type="number" placeholder="Price per bag">
 <button onclick="cementIn()">Save Cement IN</button>
+
 <hr>
+
 <h3>Cement OUT</h3>
-<input type="date" id="coutDate">
-<input type="number" id="coutBags" placeholder="Bags used">
+<input type="date" id="cout_date">
+<input id="cout_bags" type="number" placeholder="Bags used">
 <button onclick="cementOut()">Save Cement OUT</button>
 </section>
 
 <section id="prod" class="card">
 <h3>Production</h3>
-<input type="date" id="pDate">
-<select id="pSize">
+<input type="date" id="pdate">
+<select id="psize">
 <option value="4">4 inch</option>
 <option value="5">5 inch</option>
 <option value="6">6 inch</option>
 </select>
-<input type="number" id="pQty" placeholder="Quantity">
-<button onclick="saveProduction()">Save Production</button>
+<input id="pqty" type="number" placeholder="Quantity">
+<button onclick="saveProd()">Save Production</button>
 </section>
 
-<section id="sales" class="card">
+<section id="sale" class="card">
 <h3>Sales</h3>
-<input type="date" id="sDate">
-<select id="sSize">
+<input type="date" id="sdate">
+<select id="ssize">
 <option value="4">4 inch</option>
 <option value="5">5 inch</option>
 <option value="6">6 inch</option>
 </select>
-<input type="number" id="sQty" placeholder="Quantity sold">
-<input type="number" id="sPrice" placeholder="Price per block">
-<button class="sellBtn" onclick="sellBlocks()">Sell Blocks</button>
+<input id="sqty" type="number" placeholder="Quantity sold">
+<input id="sprice" type="number" placeholder="Price per block">
+<button class="sellBtn" onclick="saveSale()">Save Sale</button>
 </section>
 
 <section id="exp" class="card">
-<h3>Expenses</h3>
-<input type="date" id="eDate">
-<input id="eName" placeholder="Expense name">
-<input type="number" id="eAmt" placeholder="Amount">
+<h3>Expense</h3>
+<input type="date" id="edate">
+<input id="ename" placeholder="Expense name">
+<input id="eamt" type="number" placeholder="Amount">
 <button class="expBtn" onclick="saveExpense()">Save Expense</button>
 </section>
 
 <section id="history" class="card">
-<h3>History</h3>
-<div id="historyList"></div>
+<h3>History (Latest First)</h3>
+<div id="hlist"></div>
 </section>
 
-<section id="reports" class="card">
+<section id="report" class="card">
 <h3>Reports</h3>
-<label>From date</label>
-<input type="date" id="rFrom">
-<label>To date</label>
-<input type="date" id="rTo">
-<button onclick="generateReport()">Generate Report</button>
+<input type="date" id="rfrom">
+<input type="date" id="rto">
+<button onclick="renderReport()">Generate Report</button>
 <hr>
-<div id="reportSummary"></div>
-<hr>
-<div id="reportDetails"></div>
-<hr>
+<div id="rout"></div>
 <button class="exportBtn" onclick="window.print()">Print / Save PDF</button>
-<button class="exportBtn" onclick="shareReport()">Share Report</button>
 </section>
 
 <script>
-let store = JSON.parse(localStorage.getItem("montblock_v61")) || {
- cementIn:[], cementOut:[], production:[], sales:[], expenses:[]
+let store=JSON.parse(localStorage.getItem("montblock_v61"))||{
+cement:0,blocks:{4:0,5:0,6:0},sales:0,expenses:0,records:[]
 };
 
-function today(){return new Date().toISOString().slice(0,10);}
-function now(){return new Date().toLocaleTimeString();}
-
-function show(id){
- document.querySelectorAll("section").forEach(s=>s.style.display="none");
- document.getElementById(id).style.display="block";
- if(id==="history")renderHistory();
-}
-
-function save(){
- localStorage.setItem("montblock_v61",JSON.stringify(store));
- updateDash();
-}
-
-function getDate(val){ return val ? val : today(); }
+function save(){localStorage.setItem("montblock_v61",JSON.stringify(store));renderDash();}
+function show(id){document.querySelectorAll("section").forEach(s=>s.style.display="none");document.getElementById(id).style.display="block";if(id==="history")renderHistory();if(id==="report")renderReport();}
+function today(d){return d||new Date().toDateString();}
 
 function cementIn(){
- store.cementIn.push({
-  bags:+cinBags.value,
-  price:+cinPrice.value,
-  date:getDate(cinDate.value),
-  time:now()
- });
- cinBags.value=cinPrice.value="";
- save();
+store.cement+=+cin_bags.value;
+store.records.push({t:"Cement IN",d:today(cin_date.value),txt:`Bags ${cin_bags.value} @ ${cin_price.value}`});
+save();
 }
 
 function cementOut(){
- store.cementOut.push({
-  bags:+coutBags.value,
-  date:getDate(coutDate.value),
-  time:now()
- });
- coutBags.value="";
- save();
+store.cement-=+cout_bags.value;
+store.records.push({t:"Cement OUT",d:today(cout_date.value),txt:`Bags used ${cout_bags.value}`});
+save();
 }
 
-function saveProduction(){
- store.production.push({
-  size:pSize.value,
-  qty:+pQty.value,
-  date:getDate(pDate.value)
- });
- pQty.value="";
- save();
+function saveProd(){
+store.blocks[psize.value]+=+pqty.value;
+store.records.push({t:"Production",d:today(pdate.value),txt:`${psize.value}" Qty ${pqty.value}`});
+save();
 }
 
-function sellBlocks(){
- store.sales.push({
-  size:sSize.value,
-  qty:+sQty.value,
-  price:+sPrice.value,
-  total:sQty.value*sPrice.value,
-  date:getDate(sDate.value),
-  time:now()
- });
- sQty.value=sPrice.value="";
- save();
+function saveSale(){
+store.blocks[ssize.value]-=+sqty.value;
+let amt=sqty.value*sprice.value;
+store.sales+=amt;
+store.records.push({t:"Sale",d:today(sdate.value),txt:`${ssize.value}" Qty ${sqty.value} = ${amt}`});
+save();
 }
 
 function saveExpense(){
- store.expenses.push({
-  name:eName.value,
-  amt:+eAmt.value,
-  date:getDate(eDate.value),
-  time:now()
- });
- eName.value=eAmt.value="";
- save();
+store.expenses+=+eamt.value;
+store.records.push({t:"Expense",d:today(edate.value),txt:`${ename.value} – ${eamt.value}`});
+save();
 }
 
-function updateDash(){
- let cin=0,cout=0;
- store.cementIn.forEach(r=>cin+=r.bags);
- store.cementOut.forEach(r=>cout+=r.bags);
- cementStock.innerText=cin-cout;
-
- let b4=0,b5=0,b6=0;
- store.production.forEach(r=>{
-  if(r.size=="4")b4+=r.qty;
-  if(r.size=="5")b5+=r.qty;
-  if(r.size=="6")b6+=r.qty;
- });
- store.sales.forEach(r=>{
-  if(r.size=="4")b4-=r.qty;
-  if(r.size=="5")b5-=r.qty;
-  if(r.size=="6")b6-=r.qty;
- });
- document.getElementById("b4").innerText=b4;
- document.getElementById("b5").innerText=b5;
- document.getElementById("b6").innerText=b6;
-
- let ts=0,te=0;
- store.sales.forEach(r=>ts+=r.total);
- store.expenses.forEach(r=>te+=r.amt);
- totalSales.innerText=ts.toLocaleString();
- totalExpenses.innerText=te.toLocaleString();
- profit.innerText=(ts-te).toLocaleString();
+function renderDash(){
+dash.innerHTML=`
+<h3>Dashboard</h3>
+<b>Cement Stock:</b> ${store.cement} bags<hr>
+4" Blocks: ${store.blocks[4]}<br>
+5" Blocks: ${store.blocks[5]}<br>
+6" Blocks: ${store.blocks[6]}<hr>
+<b>Total Sales:</b> ${store.sales}<br>
+<b>Total Expenses:</b> ${store.expenses}<br>
+<b>Profit:</b> ${store.sales-store.expenses}
+`;
 }
 
 function renderHistory(){
- let h=document.getElementById("historyList");
- h.innerHTML="";
- [...store.cementIn.map(r=>({t:"Cement IN",d:`${r.bags} bags`,dt:r.date+" "+r.time})),
-  ...store.cementOut.map(r=>({t:"Cement OUT",d:`${r.bags} bags`,dt:r.date+" "+r.time})),
-  ...store.production.map(r=>({t:"Production",d:`${r.size}\" Qty ${r.qty}`,dt:r.date})),
-  ...store.sales.map(r=>({t:"Sale",d:`${r.size}\" Qty ${r.qty}`,dt:r.date+" "+r.time})),
-  ...store.expenses.map(r=>({t:"Expense",d:`${r.name} – ${r.amt}`,dt:r.date+" "+r.time}))
- ].reverse().forEach(r=>{
-  h.innerHTML+=`<div class="item"><b>${r.t}</b><br>${r.d}<br><span class="small">${r.dt}</span></div>`;
- });
+hlist.innerHTML="";
+store.records.slice().reverse().forEach(r=>{
+hlist.innerHTML+=`<div class="item"><b>${r.t}</b><br>${r.txt}<br><span class="small">${r.d}</span></div>`;
+});
 }
 
-function inRange(d,f,t){return d>=f && d<=t;}
-
-function generateReport(){
- let f=rFrom.value,t=rTo.value;
- let sales=store.sales.filter(r=>inRange(r.date,f,t));
- let exp=store.expenses.filter(r=>inRange(r.date,f,t));
- let prod=store.production.filter(r=>inRange(r.date,f,t));
- let cout=store.cementOut.filter(r=>inRange(r.date,f,t));
-
- let ts=0,te=0,b4=0,b5=0,b6=0,cu=0;
- sales.forEach(r=>{ts+=r.total;if(r.size=="4")b4+=r.qty;if(r.size=="5")b5+=r.qty;if(r.size=="6")b6+=r.qty;});
- exp.forEach(r=>te+=r.amt);
- cout.forEach(r=>cu+=r.bags);
-
- reportSummary.innerHTML=`
- <b>Summary</b><br>
- Sales: TZS ${ts.toLocaleString()}<br>
- Expenses: TZS ${te.toLocaleString()}<br>
- Profit: TZS ${(ts-te).toLocaleString()}<br>
- Blocks sold: 4″ ${b4}, 5″ ${b5}, 6″ ${b6}<br>
- Cement used: ${cu} bags
- `;
-
- reportDetails.innerHTML="<b>Details</b>";
- sales.forEach(r=>reportDetails.innerHTML+=`<div class="item">Sale ${r.size}″ Qty ${r.qty} – ${r.total.toLocaleString()}</div>`);
- exp.forEach(r=>reportDetails.innerHTML+=`<div class="item">Expense ${r.name} – ${r.amt.toLocaleString()}</div>`);
- prod.forEach(r=>reportDetails.innerHTML+=`<div class="item">Production ${r.size}″ Qty ${r.qty}</div>`);
+function renderReport(){
+rout.innerHTML=`
+<b>Sales:</b> ${store.sales}<br>
+<b>Expenses:</b> ${store.expenses}<br>
+<b>Profit:</b> ${store.sales-store.expenses}
+`;
 }
 
-async function shareReport(){
- if(!navigator.share){alert("Sharing not supported");return;}
- await navigator.share({title:"MONTBLOCK Report",text:document.getElementById("reports").innerText});
-}
-
-updateDash();
-show("dash");
+renderDash();
+show('dash');
 </script>
-
 </body>
 </html>
