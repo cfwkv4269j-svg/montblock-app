@@ -2,21 +2,23 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MONTBLOCK – Step 1</title>
+<title>MONTBLOCK – Cement System</title>
 
 <style>
 body{font-family:Arial;margin:0;background:#f4f4f4}
-header{background:#000;color:#fff;padding:15px;text-align:center}
+header{background:#000;color:#fff;padding:15px;text-align:center;font-weight:bold}
 nav{display:flex;justify-content:space-around;background:#ddd;padding:10px}
-button{padding:10px;border:none;background:#000;color:#fff;border-radius:4px}
+nav button{padding:10px;border:none;background:#000;color:#fff;border-radius:4px}
 section{display:none;padding:15px}
 .card{background:#fff;padding:15px;border-radius:6px}
+input{width:100%;padding:8px;margin:6px 0}
+hr{margin:15px 0}
 </style>
 </head>
 
 <body>
 
-<header>MONTBLOCK – Fresh Build</header>
+<header>MONTBLOCK – Cement Manager</header>
 
 <nav>
 <button onclick="show('dash')">Dashboard</button>
@@ -25,19 +27,88 @@ section{display:none;padding:15px}
 
 <section id="dash" class="card">
 <h3>Dashboard</h3>
-<p>Dashboard is working ✅</p>
+<p><b>Cement Stock:</b> <span id="cementStock">0</span> bags</p>
 </section>
 
 <section id="cement" class="card">
-<h3>Cement</h3>
-<p>Cement section is working ✅</p>
+<h3>Cement IN</h3>
+
+<input type="number" id="inBags" placeholder="Bags purchased">
+<input type="number" id="inPrice" placeholder="Price per bag">
+<button onclick="cementIn()">Save Cement IN</button>
+
+<hr>
+
+<h3>Cement OUT</h3>
+
+<input type="number" id="outBags" placeholder="Bags used">
+<button onclick="cementOut()">Save Cement OUT</button>
 </section>
 
 <script>
+let store = JSON.parse(localStorage.getItem("montblock_cement_v1")) || {
+  cementIn: [],
+  cementOut: []
+};
+
 function show(id){
   document.querySelectorAll("section").forEach(s=>s.style.display="none");
   document.getElementById(id).style.display="block";
 }
+
+function save(){
+  localStorage.setItem("montblock_cement_v1", JSON.stringify(store));
+  updateDashboard();
+}
+
+function cementIn(){
+  let bags = Number(inBags.value);
+  let price = Number(inPrice.value);
+
+  if(bags<=0 || price<=0){
+    alert("Enter valid numbers");
+    return;
+  }
+
+  store.cementIn.push({
+    bags: bags,
+    price: price,
+    time: new Date().toLocaleString()
+  });
+
+  inBags.value="";
+  inPrice.value="";
+  save();
+}
+
+function cementOut(){
+  let bags = Number(outBags.value);
+
+  if(bags<=0){
+    alert("Enter valid bags");
+    return;
+  }
+
+  store.cementOut.push({
+    bags: bags,
+    time: new Date().toLocaleString()
+  });
+
+  outBags.value="";
+  save();
+}
+
+function updateDashboard(){
+  let totalIn = 0;
+  let totalOut = 0;
+
+  store.cementIn.forEach(c=>totalIn+=c.bags);
+  store.cementOut.forEach(c=>totalOut+=c.bags);
+
+  document.getElementById("cementStock").innerText = totalIn - totalOut;
+}
+
+updateDashboard();
 show("dash");
 </script>
 
