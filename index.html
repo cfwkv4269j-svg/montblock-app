@@ -15,7 +15,6 @@ input,select{width:100%;padding:8px;margin:6px 0}
 hr{margin:15px 0}
 .sellBtn{background:#0a7d0a}
 .expBtn{background:#b00020}
-.editBtn{background:#555;color:#fff;padding:4px 8px;border:none;border-radius:4px}
 .delBtn{background:#900;color:#fff;padding:4px 8px;border:none;border-radius:4px}
 .small{font-size:13px;color:#555}
 </style>
@@ -36,22 +35,15 @@ hr{margin:15px 0}
 
 <section id="dash" class="card">
 <h3>Dashboard</h3>
-
 <p><b>Cement Stock:</b> <span id="cementStock">0</span> bags</p>
-
 <hr>
-
 <p><b>4″ Blocks:</b> <span id="b4">0</span></p>
 <p><b>5″ Blocks:</b> <span id="b5">0</span></p>
 <p><b>6″ Blocks:</b> <span id="b6">0</span></p>
-
 <hr>
-
 <p><b>Total Sales:</b> TZS <span id="totalSales">0</span></p>
 <p><b>Total Expenses:</b> TZS <span id="totalExpenses">0</span></p>
-
 <hr>
-
 <p><b>PROFIT:</b> TZS <span id="profit">0</span></p>
 </section>
 
@@ -60,9 +52,7 @@ hr{margin:15px 0}
 <input type="number" id="inBags" placeholder="Bags purchased">
 <input type="number" id="inPrice" placeholder="Price per bag">
 <button onclick="cementIn()">Save Cement IN</button>
-
 <hr>
-
 <h3>Cement OUT</h3>
 <input type="number" id="outBags" placeholder="Bags used">
 <button onclick="cementOut()">Save Cement OUT</button>
@@ -104,9 +94,12 @@ hr{margin:15px 0}
 </section>
 
 <script>
-let store = JSON.parse(localStorage.getItem("montblock_factory_v5")) || {
-  cementIn: [], cementOut: [], production: [], sales: [], expenses: []
-};
+// 🔑 LOAD DATA FROM ANY PREVIOUS VERSION
+let store =
+  JSON.parse(localStorage.getItem("montblock_factory_v5")) ||
+  JSON.parse(localStorage.getItem("montblock_factory_v4")) ||
+  JSON.parse(localStorage.getItem("montblock_factory_v3")) ||
+  { cementIn:[], cementOut:[], production:[], sales:[], expenses:[] };
 
 function today(){ return new Date().toDateString(); }
 
@@ -122,29 +115,24 @@ function save(){
 }
 
 function cementIn(){
-  if(inBags.value<=0||inPrice.value<=0)return alert("Invalid");
   store.cementIn.push({bags:+inBags.value,price:+inPrice.value,date:today()});
-  inBags.value="";inPrice.value=""; save();
+  inBags.value=""; inPrice.value=""; save();
 }
 function cementOut(){
-  if(outBags.value<=0)return alert("Invalid");
   store.cementOut.push({bags:+outBags.value,date:today()});
   outBags.value=""; save();
 }
 function saveProduction(){
-  if(pQty.value<=0)return alert("Invalid");
   store.production.push({size:pSize.value,qty:+pQty.value,date:today()});
   pQty.value=""; save();
 }
 function sellBlocks(){
-  if(sQty.value<=0||sPrice.value<=0)return alert("Invalid");
   store.sales.push({size:sSize.value,qty:+sQty.value,price:+sPrice.value,total:sQty.value*sPrice.value,date:today()});
-  sQty.value="";sPrice.value=""; save();
+  sQty.value=""; sPrice.value=""; save();
 }
 function saveExpense(){
-  if(expName.value==""||expAmount.value<=0)return alert("Invalid");
   store.expenses.push({name:expName.value,amt:+expAmount.value,date:today()});
-  expName.value="";expAmount.value=""; save();
+  expName.value=""; expAmount.value=""; save();
 }
 
 function updateDashboard(){
@@ -156,9 +144,7 @@ function updateDashboard(){
   let b4=0,b5=0,b6=0;
   store.production.forEach(p=>{if(p.size=="4")b4+=p.qty;if(p.size=="5")b5+=p.qty;if(p.size=="6")b6+=p.qty;});
   store.sales.forEach(s=>{if(s.size=="4")b4-=s.qty;if(s.size=="5")b5-=s.qty;if(s.size=="6")b6-=s.qty;});
-  document.getElementById("b4").innerText=b4;
-  document.getElementById("b5").innerText=b5;
-  document.getElementById("b6").innerText=b6;
+  b4.innerText=b4; b5.innerText=b5; b6.innerText=b6;
 
   let ts=0; store.sales.forEach(s=>ts+=s.total);
   let te=0; store.expenses.forEach(e=>te+=e.amt);
@@ -169,13 +155,13 @@ function updateDashboard(){
 
 function renderHistory(){
   historyList.innerHTML="";
-  Object.entries(store).forEach(([key,arr])=>{
+  Object.entries(store).forEach(([type,arr])=>{
     arr.forEach((r,i)=>{
-      let editable=r.date===today();
+      let canEdit = r.date===today();
       historyList.innerHTML+=`
       <p class="small">
-      ${key.toUpperCase()} | ${JSON.stringify(r)}
-      ${editable?`<button class="delBtn" onclick="del('${key}',${i})">Delete</button>`:""}
+      <b>${type}</b> — ${JSON.stringify(r)}
+      ${canEdit?`<button class="delBtn" onclick="del('${type}',${i})">Delete</button>`:""}
       </p>`;
     });
   });
