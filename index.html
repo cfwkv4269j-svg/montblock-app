@@ -17,7 +17,7 @@ hr{margin:15px 0}
 .expBtn{background:#b00020}
 .editBtn{background:#444;color:#fff;padding:4px 8px;border:none;border-radius:4px;margin-right:5px}
 .delBtn{background:#900;color:#fff;padding:4px 8px;border:none;border-radius:4px}
-.item{border-bottom:1px solid #ddd;padding:8px 0}
+.item{border-bottom:1px solid #ddd;padding:10px 0}
 .title{font-weight:bold}
 .small{font-size:13px;color:#555}
 </style>
@@ -92,17 +92,17 @@ hr{margin:15px 0}
 </section>
 
 <section id="history" class="card">
-<h3>History</h3>
+<h3>History (Latest First)</h3>
 <div id="historyList"></div>
 </section>
 
 <script>
-let store = JSON.parse(localStorage.getItem("montblock_factory_v53")) || {
+let store = JSON.parse(localStorage.getItem("montblock_factory_v54")) || {
  cementIn:[], cementOut:[], production:[], sales:[], expenses:[]
 };
-let editRef = null;
+let editRef=null;
 
-function today(){ return new Date().toDateString(); }
+function today(){return new Date().toDateString();}
 
 function show(id){
  document.querySelectorAll("section").forEach(s=>s.style.display="none");
@@ -111,43 +111,34 @@ function show(id){
 }
 
 function save(){
- localStorage.setItem("montblock_factory_v53", JSON.stringify(store));
+ localStorage.setItem("montblock_factory_v54",JSON.stringify(store));
  updateDashboard();
 }
 
 function cementIn(){
- let r={bags:+inBags.value,price:+inPrice.value,date:today()};
- if(editRef){ store.cementIn[editRef.i]=r; editRef=null; }
- else store.cementIn.push(r);
- inBags.value=""; inPrice.value=""; save();
+ let r={type:"Cement IN",bags:+inBags.value,price:+inPrice.value,date:today()};
+ if(editRef){store.cementIn[editRef.i]=r;editRef=null;} else store.cementIn.push(r);
+ inBags.value="";inPrice.value="";save();
 }
-
 function cementOut(){
- let r={bags:+outBags.value,date:today()};
- if(editRef){ store.cementOut[editRef.i]=r; editRef=null; }
- else store.cementOut.push(r);
- outBags.value=""; save();
+ let r={type:"Cement OUT",bags:+outBags.value,date:today()};
+ if(editRef){store.cementOut[editRef.i]=r;editRef=null;} else store.cementOut.push(r);
+ outBags.value="";save();
 }
-
 function saveProduction(){
- let r={size:pSize.value,qty:+pQty.value,date:today()};
- if(editRef){ store.production[editRef.i]=r; editRef=null; }
- else store.production.push(r);
- pQty.value=""; save();
+ let r={type:"Production",size:pSize.value,qty:+pQty.value,date:today()};
+ if(editRef){store.production[editRef.i]=r;editRef=null;} else store.production.push(r);
+ pQty.value="";save();
 }
-
 function sellBlocks(){
- let r={size:sSize.value,qty:+sQty.value,price:+sPrice.value,total:sQty.value*sPrice.value,date:today()};
- if(editRef){ store.sales[editRef.i]=r; editRef=null; }
- else store.sales.push(r);
- sQty.value=""; sPrice.value=""; save();
+ let r={type:"Sale",size:sSize.value,qty:+sQty.value,price:+sPrice.value,total:sQty.value*sPrice.value,date:today()};
+ if(editRef){store.sales[editRef.i]=r;editRef=null;} else store.sales.push(r);
+ sQty.value="";sPrice.value="";save();
 }
-
 function saveExpense(){
- let r={name:expName.value,amt:+expAmount.value,date:today()};
- if(editRef){ store.expenses[editRef.i]=r; editRef=null; }
- else store.expenses.push(r);
- expName.value=""; expAmount.value=""; save();
+ let r={type:"Expense",name:expName.value,amt:+expAmount.value,date:today()};
+ if(editRef){store.expenses[editRef.i]=r;editRef=null;} else store.expenses.push(r);
+ expName.value="";expAmount.value="";save();
 }
 
 function updateDashboard(){
@@ -159,10 +150,10 @@ function updateDashboard(){
  let b4=0,b5=0,b6=0;
  store.production.forEach(p=>{if(p.size=="4")b4+=p.qty;if(p.size=="5")b5+=p.qty;if(p.size=="6")b6+=p.qty;});
  store.sales.forEach(s=>{if(s.size=="4")b4-=s.qty;if(s.size=="5")b5-=s.qty;if(s.size=="6")b6-=s.qty;});
- b4.innerText=b4; b5.innerText=b5; b6.innerText=b6;
+ b4.innerText=b4;b5.innerText=b5;b6.innerText=b6;
 
- let ts=0; store.sales.forEach(s=>ts+=s.total);
- let te=0; store.expenses.forEach(e=>te+=e.amt);
+ let ts=0;store.sales.forEach(s=>ts+=s.total);
+ let te=0;store.expenses.forEach(e=>te+=e.amt);
  totalSales.innerText=ts.toLocaleString();
  totalExpenses.innerText=te.toLocaleString();
  profit.innerText=(ts-te).toLocaleString();
@@ -170,40 +161,49 @@ function updateDashboard(){
 
 function renderHistory(){
  historyList.innerHTML="";
- Object.entries(store).forEach(([type,arr])=>{
-  arr.forEach((r,i)=>{
-   let can=r.date===today();
-   historyList.innerHTML+=`
-   <div class="item">
-    <div class="title">${type}</div>
-    <div class="small">${JSON.stringify(r)}</div>
-    ${can?`<button class="editBtn" onclick="edit('${type}',${i})">Edit</button>
-    <button class="delBtn" onclick="del('${type}',${i})">Delete</button>`:""}
-   </div>`;
-  });
+ let all=[];
+ store.cementIn.forEach((r,i)=>all.push({r,i,t:"cementIn"}));
+ store.cementOut.forEach((r,i)=>all.push({r,i,t:"cementOut"}));
+ store.production.forEach((r,i)=>all.push({r,i,t:"production"}));
+ store.sales.forEach((r,i)=>all.push({r,i,t:"sales"}));
+ store.expenses.forEach((r,i)=>all.push({r,i,t:"expenses"}));
+ all.reverse().forEach(o=>{
+  let r=o.r;
+  let can=r.date===today();
+  let desc=r.type==="Sale"?`${r.size}″ Qty ${r.qty} – TZS ${r.total.toLocaleString()}`:
+           r.type==="Production"?`${r.size}″ Qty ${r.qty}`:
+           r.type==="Expense"?`${r.name} – TZS ${r.amt.toLocaleString()}`:
+           r.type==="Cement IN"?`Bags ${r.bags} @ ${r.price}`:
+           `Bags used ${r.bags}`;
+  historyList.innerHTML+=`
+  <div class="item">
+   <div class="title">${r.type}</div>
+   <div class="small">${desc}</div>
+   <div class="small">Date: ${r.date}</div>
+   ${can?`<button class="editBtn" onclick="edit('${o.t}',${o.i})">Edit</button>
+   <button class="delBtn" onclick="del('${o.t}',${o.i})">Delete</button>`:""}
+  </div>`;
  });
 }
 
-function edit(type,i){
- editRef={type:type,i:i};
- let r=store[type][i];
- show(type==="expenses"?"exp":type==="production"?"prod":type==="sales"?"sales":"cement");
- if(type==="cementIn"){inBags.value=r.bags; inPrice.value=r.price;}
- if(type==="cementOut"){outBags.value=r.bags;}
- if(type==="production"){pSize.value=r.size; pQty.value=r.qty;}
- if(type==="sales"){sSize.value=r.size; sQty.value=r.qty; sPrice.value=r.price;}
- if(type==="expenses"){expName.value=r.name; expAmount.value=r.amt;}
+function edit(t,i){
+ editRef={t,i};
+ let r=store[t][i];
+ show(t==="expenses"?"exp":t==="production"?"prod":t==="sales"?"sales":"cement");
+ if(t==="cementIn"){inBags.value=r.bags;inPrice.value=r.price;}
+ if(t==="cementOut"){outBags.value=r.bags;}
+ if(t==="production"){pSize.value=r.size;pQty.value=r.qty;}
+ if(t==="sales"){sSize.value=r.size;sQty.value=r.qty;sPrice.value=r.price;}
+ if(t==="expenses"){expName.value=r.name;expAmount.value=r.amt;}
 }
 
-function del(type,i){
+function del(t,i){
  if(confirm("Delete this record?")){
-  store[type].splice(i,1);
-  save(); renderHistory();
+  store[t].splice(i,1);save();renderHistory();
  }
 }
 
-updateDashboard();
-show("dash");
+updateDashboard();show("dash");
 </script>
 
 </body>
