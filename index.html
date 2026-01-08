@@ -7,12 +7,14 @@
 <style>
 body{font-family:Arial;margin:0;background:#f4f4f4}
 header{background:#000;color:#fff;padding:15px;text-align:center;font-weight:bold}
-nav{display:flex;justify-content:space-around;background:#ddd;padding:10px}
-nav button{padding:10px;border:none;background:#000;color:#fff;border-radius:4px}
+nav{display:flex;flex-wrap:wrap;justify-content:space-around;background:#ddd;padding:10px}
+nav button{padding:10px;border:none;background:#000;color:#fff;border-radius:4px;margin:3px}
 section{display:none;padding:15px}
 .card{background:#fff;padding:15px;border-radius:6px}
 input,select{width:100%;padding:8px;margin:6px 0}
 hr{margin:15px 0}
+.sellBtn{background:#0a7d0a}
+.expBtn{background:#b00020}
 </style>
 </head>
 
@@ -25,6 +27,7 @@ hr{margin:15px 0}
 <button onclick="show('cement')">Cement</button>
 <button onclick="show('prod')">Production</button>
 <button onclick="show('sales')">Sales</button>
+<button onclick="show('exp')">Expenses</button>
 </nav>
 
 <section id="dash" class="card">
@@ -41,6 +44,11 @@ hr{margin:15px 0}
 <hr>
 
 <p><b>Total Sales:</b> TZS <span id="totalSales">0</span></p>
+<p><b>Total Expenses:</b> TZS <span id="totalExpenses">0</span></p>
+
+<hr>
+
+<p><b>PROFIT:</b> TZS <span id="profit">0</span></p>
 </section>
 
 <section id="cement" class="card">
@@ -70,7 +78,7 @@ hr{margin:15px 0}
 </section>
 
 <section id="sales" class="card">
-<h3>Block Sales</h3>
+<h3>SELL BLOCKS</h3>
 
 <select id="sSize">
 <option value="4">4 inch blocks</option>
@@ -80,15 +88,26 @@ hr{margin:15px 0}
 
 <input type="number" id="sQty" placeholder="Quantity sold">
 <input type="number" id="sPrice" placeholder="Price per block">
-<button onclick="saveSale()">Save Sale</button>
+
+<button class="sellBtn" onclick="sellBlocks()">SELL BLOCKS</button>
+</section>
+
+<section id="exp" class="card">
+<h3>Expenses</h3>
+
+<input id="expName" placeholder="Expense name (e.g. Labour)">
+<input type="number" id="expAmount" placeholder="Amount">
+
+<button class="expBtn" onclick="saveExpense()">Save Expense</button>
 </section>
 
 <script>
-let store = JSON.parse(localStorage.getItem("montblock_factory_v3")) || {
+let store = JSON.parse(localStorage.getItem("montblock_factory_v4")) || {
   cementIn: [],
   cementOut: [],
   production: [],
-  sales: []
+  sales: [],
+  expenses: []
 };
 
 function show(id){
@@ -97,7 +116,7 @@ function show(id){
 }
 
 function save(){
-  localStorage.setItem("montblock_factory_v3", JSON.stringify(store));
+  localStorage.setItem("montblock_factory_v4", JSON.stringify(store));
   updateDashboard();
 }
 
@@ -130,7 +149,7 @@ function saveProduction(){
   save();
 }
 
-function saveSale(){
+function sellBlocks(){
   let size = sSize.value;
   let qty = Number(sQty.value);
   let price = Number(sPrice.value);
@@ -153,6 +172,26 @@ function saveSale(){
   save();
 }
 
+function saveExpense(){
+  let name = expName.value.trim();
+  let amt = Number(expAmount.value);
+
+  if(name=="" || amt<=0){
+    alert("Enter valid expense");
+    return;
+  }
+
+  store.expenses.push({
+    name,
+    amt,
+    time: new Date().toLocaleString()
+  });
+
+  expName.value="";
+  expAmount.value="";
+  save();
+}
+
 function updateDashboard(){
   let cin=0, cout=0;
   store.cementIn.forEach(c=>cin+=c.bags);
@@ -171,13 +210,19 @@ function updateDashboard(){
     if(s.size=="6") b6-=s.qty;
   });
 
-  document.getElementById("b4").innerText=b4;
-  document.getElementById("b5").innerText=b5;
-  document.getElementById("b6").innerText=b6;
+  b4.innerText=b4;
+  b5.innerText=b5;
+  b6.innerText=b6;
 
-  let totalSales = 0;
-  store.sales.forEach(s=>totalSales+=s.total);
-  document.getElementById("totalSales").innerText = totalSales.toLocaleString();
+  let salesTotal = 0;
+  store.sales.forEach(s=>salesTotal+=s.total);
+  totalSales.innerText = salesTotal.toLocaleString();
+
+  let expTotal = 0;
+  store.expenses.forEach(e=>expTotal+=e.amt);
+  totalExpenses.innerText = expTotal.toLocaleString();
+
+  profit.innerText = (salesTotal - expTotal).toLocaleString();
 }
 
 updateDashboard();
