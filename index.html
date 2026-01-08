@@ -15,6 +15,9 @@ input,select{width:100%;padding:8px;margin:6px 0}
 hr{margin:15px 0}
 .sellBtn{background:#0a7d0a}
 .expBtn{background:#b00020}
+.editBtn{background:#555;color:#fff;padding:4px 8px;border:none;border-radius:4px}
+.delBtn{background:#900;color:#fff;padding:4px 8px;border:none;border-radius:4px}
+.small{font-size:13px;color:#555}
 </style>
 </head>
 
@@ -28,6 +31,7 @@ hr{margin:15px 0}
 <button onclick="show('prod')">Production</button>
 <button onclick="show('sales')">Sales</button>
 <button onclick="show('exp')">Expenses</button>
+<button onclick="show('history')">History</button>
 </nav>
 
 <section id="dash" class="card">
@@ -66,163 +70,122 @@ hr{margin:15px 0}
 
 <section id="prod" class="card">
 <h3>Block Production</h3>
-
 <select id="pSize">
 <option value="4">4 inch blocks</option>
 <option value="5">5 inch blocks</option>
 <option value="6">6 inch blocks</option>
 </select>
-
 <input type="number" id="pQty" placeholder="Quantity produced">
 <button onclick="saveProduction()">Save Production</button>
 </section>
 
 <section id="sales" class="card">
 <h3>SELL BLOCKS</h3>
-
 <select id="sSize">
 <option value="4">4 inch blocks</option>
 <option value="5">5 inch blocks</option>
 <option value="6">6 inch blocks</option>
 </select>
-
 <input type="number" id="sQty" placeholder="Quantity sold">
 <input type="number" id="sPrice" placeholder="Price per block">
-
 <button class="sellBtn" onclick="sellBlocks()">SELL BLOCKS</button>
 </section>
 
 <section id="exp" class="card">
 <h3>Expenses</h3>
-
-<input id="expName" placeholder="Expense name (e.g. Labour)">
+<input id="expName" placeholder="Expense name">
 <input type="number" id="expAmount" placeholder="Amount">
-
 <button class="expBtn" onclick="saveExpense()">Save Expense</button>
 </section>
 
+<section id="history" class="card">
+<h3>History</h3>
+<div id="historyList"></div>
+</section>
+
 <script>
-let store = JSON.parse(localStorage.getItem("montblock_factory_v4")) || {
-  cementIn: [],
-  cementOut: [],
-  production: [],
-  sales: [],
-  expenses: []
+let store = JSON.parse(localStorage.getItem("montblock_factory_v5")) || {
+  cementIn: [], cementOut: [], production: [], sales: [], expenses: []
 };
+
+function today(){ return new Date().toDateString(); }
 
 function show(id){
   document.querySelectorAll("section").forEach(s=>s.style.display="none");
   document.getElementById(id).style.display="block";
+  if(id==="history") renderHistory();
 }
 
 function save(){
-  localStorage.setItem("montblock_factory_v4", JSON.stringify(store));
+  localStorage.setItem("montblock_factory_v5", JSON.stringify(store));
   updateDashboard();
 }
 
 function cementIn(){
-  let bags = Number(inBags.value);
-  let price = Number(inPrice.value);
-  if(bags<=0 || price<=0){ alert("Enter valid numbers"); return; }
-
-  store.cementIn.push({bags,price,time:new Date().toLocaleString()});
-  inBags.value=""; inPrice.value="";
-  save();
+  if(inBags.value<=0||inPrice.value<=0)return alert("Invalid");
+  store.cementIn.push({bags:+inBags.value,price:+inPrice.value,date:today()});
+  inBags.value="";inPrice.value=""; save();
 }
-
 function cementOut(){
-  let bags = Number(outBags.value);
-  if(bags<=0){ alert("Enter valid bags"); return; }
-
-  store.cementOut.push({bags,time:new Date().toLocaleString()});
-  outBags.value="";
-  save();
+  if(outBags.value<=0)return alert("Invalid");
+  store.cementOut.push({bags:+outBags.value,date:today()});
+  outBags.value=""; save();
 }
-
 function saveProduction(){
-  let size = pSize.value;
-  let qty = Number(pQty.value);
-  if(qty<=0){ alert("Enter valid quantity"); return; }
-
-  store.production.push({size,qty,time:new Date().toLocaleString()});
-  pQty.value="";
-  save();
+  if(pQty.value<=0)return alert("Invalid");
+  store.production.push({size:pSize.value,qty:+pQty.value,date:today()});
+  pQty.value=""; save();
 }
-
 function sellBlocks(){
-  let size = sSize.value;
-  let qty = Number(sQty.value);
-  let price = Number(sPrice.value);
-
-  if(qty<=0 || price<=0){
-    alert("Enter valid sale values");
-    return;
-  }
-
-  store.sales.push({
-    size,
-    qty,
-    price,
-    total: qty * price,
-    time: new Date().toLocaleString()
-  });
-
-  sQty.value="";
-  sPrice.value="";
-  save();
+  if(sQty.value<=0||sPrice.value<=0)return alert("Invalid");
+  store.sales.push({size:sSize.value,qty:+sQty.value,price:+sPrice.value,total:sQty.value*sPrice.value,date:today()});
+  sQty.value="";sPrice.value=""; save();
 }
-
 function saveExpense(){
-  let name = expName.value.trim();
-  let amt = Number(expAmount.value);
-
-  if(name=="" || amt<=0){
-    alert("Enter valid expense");
-    return;
-  }
-
-  store.expenses.push({
-    name,
-    amt,
-    time: new Date().toLocaleString()
-  });
-
-  expName.value="";
-  expAmount.value="";
-  save();
+  if(expName.value==""||expAmount.value<=0)return alert("Invalid");
+  store.expenses.push({name:expName.value,amt:+expAmount.value,date:today()});
+  expName.value="";expAmount.value=""; save();
 }
 
 function updateDashboard(){
-  let cin=0, cout=0;
+  let cin=0,cout=0;
   store.cementIn.forEach(c=>cin+=c.bags);
   store.cementOut.forEach(c=>cout+=c.bags);
-  cementStock.innerText = cin - cout;
+  cementStock.innerText=cin-cout;
 
   let b4=0,b5=0,b6=0;
-  store.production.forEach(p=>{
-    if(p.size=="4") b4+=p.qty;
-    if(p.size=="5") b5+=p.qty;
-    if(p.size=="6") b6+=p.qty;
+  store.production.forEach(p=>{if(p.size=="4")b4+=p.qty;if(p.size=="5")b5+=p.qty;if(p.size=="6")b6+=p.qty;});
+  store.sales.forEach(s=>{if(s.size=="4")b4-=s.qty;if(s.size=="5")b5-=s.qty;if(s.size=="6")b6-=s.qty;});
+  document.getElementById("b4").innerText=b4;
+  document.getElementById("b5").innerText=b5;
+  document.getElementById("b6").innerText=b6;
+
+  let ts=0; store.sales.forEach(s=>ts+=s.total);
+  let te=0; store.expenses.forEach(e=>te+=e.amt);
+  totalSales.innerText=ts.toLocaleString();
+  totalExpenses.innerText=te.toLocaleString();
+  profit.innerText=(ts-te).toLocaleString();
+}
+
+function renderHistory(){
+  historyList.innerHTML="";
+  Object.entries(store).forEach(([key,arr])=>{
+    arr.forEach((r,i)=>{
+      let editable=r.date===today();
+      historyList.innerHTML+=`
+      <p class="small">
+      ${key.toUpperCase()} | ${JSON.stringify(r)}
+      ${editable?`<button class="delBtn" onclick="del('${key}',${i})">Delete</button>`:""}
+      </p>`;
+    });
   });
-  store.sales.forEach(s=>{
-    if(s.size=="4") b4-=s.qty;
-    if(s.size=="5") b5-=s.qty;
-    if(s.size=="6") b6-=s.qty;
-  });
+}
 
-  b4.innerText=b4;
-  b5.innerText=b5;
-  b6.innerText=b6;
-
-  let salesTotal = 0;
-  store.sales.forEach(s=>salesTotal+=s.total);
-  totalSales.innerText = salesTotal.toLocaleString();
-
-  let expTotal = 0;
-  store.expenses.forEach(e=>expTotal+=e.amt);
-  totalExpenses.innerText = expTotal.toLocaleString();
-
-  profit.innerText = (salesTotal - expTotal).toLocaleString();
+function del(type,i){
+  if(confirm("Delete this record?")){
+    store[type].splice(i,1);
+    save(); renderHistory();
+  }
 }
 
 updateDashboard();
