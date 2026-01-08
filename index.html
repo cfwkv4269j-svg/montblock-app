@@ -11,13 +11,17 @@ nav{display:flex;flex-wrap:wrap;justify-content:space-around;background:#ddd;pad
 nav button{padding:10px;border:none;background:#000;color:#fff;border-radius:4px;margin:3px}
 section{display:none;padding:15px}
 .card{background:#fff;padding:15px;border-radius:6px}
-input,select{width:100%;padding:8px;margin:6px 0}
+input,select,button{width:100%;padding:8px;margin:6px 0}
 hr{margin:15px 0}
 .sellBtn{background:#0a7d0a;color:#fff}
 .expBtn{background:#b00020;color:#fff}
+.exportBtn{background:#004aad;color:#fff}
 .item{border-bottom:1px solid #ddd;padding:8px 0}
-.title{font-weight:bold}
 .small{font-size:13px;color:#555}
+@media print{
+ nav,button{display:none}
+ body{background:#fff}
+}
 </style>
 </head>
 
@@ -113,9 +117,16 @@ hr{margin:15px 0}
 
 <hr>
 
-<div id="reportSummary"></div>
+<div id="reportArea">
+  <div id="reportSummary"></div>
+  <hr>
+  <div id="reportDetails"></div>
+</div>
+
 <hr>
-<div id="reportDetails"></div>
+
+<button class="exportBtn" onclick="window.print()">Print / Save PDF</button>
+<button class="exportBtn" onclick="shareReport()">Share Report</button>
 </section>
 
 <script>
@@ -165,7 +176,6 @@ function generateReport(){
  let sales=store.sales.filter(r=>inRange(r.txDate,f,t));
  let exp=store.expenses.filter(r=>inRange(r.txDate,f,t));
  let prod=store.production.filter(r=>inRange(r.txDate,f,t));
- let cin=store.cementIn.filter(r=>inRange(r.txDate,f,t));
  let cout=store.cementOut.filter(r=>inRange(r.txDate,f,t));
 
  let ts=0,te=0,b4=0,b5=0,b6=0,cu=0;
@@ -187,6 +197,16 @@ function generateReport(){
  exp.forEach(r=>reportDetails.innerHTML+=`<div class="item">Expense ${r.name} – ${r.amt.toLocaleString()}</div>`);
  prod.forEach(r=>reportDetails.innerHTML+=`<div class="item">Production ${r.size}″ Qty ${r.qty}</div>`);
 }
+
+async function shareReport(){
+ if(!navigator.share){
+   alert("Sharing not supported on this device");
+   return;
+ }
+ let text=document.getElementById("reportArea").innerText;
+ await navigator.share({title:"MONTBLOCK Report",text:text});
+}
+
 updateDash();show("dash");
 </script>
 
