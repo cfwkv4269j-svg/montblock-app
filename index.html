@@ -95,7 +95,11 @@ hr{border:none;border-top:1px solid #ccc;margin:15px 0}
 
 <script>
 const ALERT_LEVEL = 30;
-let store = JSON.parse(localStorage.getItem("montblock_v31")) || {records:[]};
+let store = JSON.parslet store =
+  JSON.parse(localStorage.getItem("montblock_v31")) ||
+  JSON.parse(localStorage.getItem("montblock_final")) ||
+  JSON.parse(localStorage.getItem("montblock3")) ||
+  {records:[]};
 
 function todayStr(){
  let d=new Date();
