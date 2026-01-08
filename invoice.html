@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MONTBLOCK Invoice</title>
+<title>MONTBLOCK – Invoice</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -13,75 +13,100 @@ body{
   padding:20px;
 }
 .invoice{
+  background:#fff;
   max-width:800px;
   margin:auto;
-  background:#fff;
   padding:20px;
   border-radius:6px;
 }
 .header{
   display:flex;
   justify-content:space-between;
-  align-items:center;
+  align-items:flex-start;
 }
-.logo{
-  font-size:24px;
-  font-weight:bold;
+.header h1{
+  margin:0;
 }
-.company{
-  text-align:right;
-  font-size:14px;
+.small{
+  font-size:13px;
+  color:#555;
 }
-hr{
-  margin:15px 0;
-}
-label{
-  font-weight:bold;
-  display:block;
-  margin-top:10px;
-}
-input{
+input, textarea, select{
   width:100%;
   padding:8px;
   margin-top:5px;
+  margin-bottom:10px;
+  border:1px solid #ccc;
+  border-radius:4px;
 }
 table{
   width:100%;
   border-collapse:collapse;
-  margin-top:15px;
-}
-table, th, td{
-  border:1px solid #ddd;
+  margin-top:10px;
 }
 th, td{
+  border:1px solid #ddd;
+  padding:8px;
+  text-align:left;
+}
+th{
+  background:#f0f0f0;
+}
+.removeBtn{
+  background:#b00020;
+  color:#fff;
+  border:none;
+  padding:5px 8px;
+  cursor:pointer;
+}
+.addBtn{
+  background:#000;
+  color:#fff;
+  border:none;
   padding:10px;
-  text-align:center;
+  cursor:pointer;
+  margin-top:10px;
 }
 .total{
   text-align:right;
-  font-size:18px;
-  margin-top:15px;
+  margin-top:10px;
+  font-size:16px;
 }
-button{
-  padding:10px 15px;
-  margin-top:15px;
+.printBtn{
+  background:#0a7d0a;
+  color:#fff;
   border:none;
+  padding:12px;
+  width:100%;
+  font-size:16px;
+  margin-top:20px;
   cursor:pointer;
 }
-.addBtn{background:#000;color:#fff;}
-.printBtn{background:#0a7d0a;color:#fff;}
+.signature{
+  margin-top:40px;
+  display:flex;
+  justify-content:space-between;
+}
+@media print{
+  body{background:#fff}
+  .addBtn,.removeBtn,.printBtn{display:none}
+  input,textarea,select{border:none}
+}
 </style>
 </head>
 
 <body>
-
 <div class="invoice">
+
   <div class="header">
-    <div class="logo">MONTBLOCK</div>
-    <div class="company">
-      Block Factory<br>
-      Phone: ___________<br>
-      Date: <span id="date"></span><br>
+    <div>
+      <h1>MONTBLOCK</h1>
+      <div class="small">Block Factory</div>
+    </div>
+    <div class="small">
+      Phone: +255 764 000 002<br>
+      Date:
+      <input type="date" id="date"><br>
       Invoice #: <span id="inv"></span>
     </div>
   </div>
@@ -94,60 +119,84 @@ button{
   <label>Customer Phone</label>
   <input type="text" placeholder="Enter phone number">
 
+  <label>Customer Address</label>
+  <textarea placeholder="Enter address"></textarea>
+
   <table id="items">
     <tr>
       <th>Description</th>
-      <th>Quantity</th>
+      <th>Qty</th>
       <th>Price</th>
       <th>Total</th>
-    </tr>
-    <tr>
-      <td><input placeholder="e.g. 6 inch blocks"></td>
-      <td><input type="number" oninput="calc()"></td>
-      <td><input type="number" oninput="calc()"></td>
-      <td class="lineTotal">0</td>
+      <th></th>
     </tr>
   </table>
 
   <button class="addBtn" onclick="addRow()">+ Add Item</button>
 
+  <label>Discount (TZS)</label>
+  <input type="number" id="discount" value="0" oninput="calc()">
+
+  <label>Payment Method</label>
+  <select>
+    <option>Cash</option>
+    <option>Lipa Number</option>
+    <option>Bank Transfer</option>
+  </select>
+
   <div class="total">
+    Subtotal: TZS <span id="sub">0</span><br>
+    Discount: TZS <span id="disc">0</span><br>
     <strong>Grand Total: TZS <span id="grand">0</span></strong>
   </div>
 
+  <label>Terms & Conditions</label>
+  <textarea placeholder="e.g. Goods once sold are not returnable."></textarea>
+
+  <div class="signature">
+    <div>
+      Authorized Signature:<br><br>
+      ______________________
+    </div>
+    <div>
+      Stamp:
+    </div>
+  </div>
+
   <button class="printBtn" onclick="window.print()">Print / Save PDF</button>
+
 </div>
 
 <script>
-document.getElementById("date").innerText =
-  new Date().toLocaleDateString();
-
-document.getElementById("inv").innerText =
-  "MB-" + Date.now();
+document.getElementById("date").valueAsDate = new Date();
+document.getElementById("inv").innerText = "MB-" + Date.now();
 
 function addRow(){
-  let table=document.getElementById("items");
-  let row=table.insertRow();
-  row.innerHTML=`
+  let t=document.getElementById("items");
+  let r=t.insertRow();
+  r.innerHTML=`
     <td><input></td>
     <td><input type="number" oninput="calc()"></td>
     <td><input type="number" oninput="calc()"></td>
-    <td class="lineTotal">0</td>
+    <td class="rowTotal">0</td>
+    <td><button class="removeBtn" onclick="this.parentElement.parentElement.remove();calc()">✖</button></td>
   `;
 }
 
 function calc(){
-  let rows=document.querySelectorAll("#items tr");
-  let grand=0;
-  rows.forEach((r,i)=>{
-    if(i===0)return;
-    let q=r.cells[1].children[0].value||0;
-    let p=r.cells[2].children[0].value||0;
+  let rows=document.querySelectorAll(".rowTotal");
+  let sum=0;
+  rows.forEach(r=>{
+    let q=r.parentElement.children[1].children[0].value||0;
+    let p=r.parentElement.children[2].children[0].value||0;
     let t=q*p;
-    r.cells[3].innerText=t;
-    grand+=t;
+    r.innerText=t;
+    sum+=t;
   });
-  document.getElementById("grand").innerText=grand;
+  document.getElementById("sub").innerText=sum;
+  let d=document.getElementById("discount").value||0;
+  document.getElementById("disc").innerText=d;
+  document.getElementById("grand").innerText=sum-d;
 }
 </script>
 
