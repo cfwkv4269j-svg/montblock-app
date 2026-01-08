@@ -2,22 +2,48 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MONTBLOCK – Reset Test</title>
+<title>MONTBLOCK – Core</title>
 <style>
-body{font-family:Arial;padding:20px}
-button{padding:12px;margin:6px}
+body{font-family:Arial;margin:0;background:#f4f4f4}
+header{background:#000;color:#fff;padding:15px;text-align:center;font-weight:bold}
+nav{display:flex;justify-content:space-around;background:#e0e0e0;padding:10px}
+nav button{padding:10px;border:none;background:#000;color:#fff;border-radius:4px}
+section{display:none;padding:15px}
+.card{background:#fff;padding:15px;border-radius:6px}
 </style>
 </head>
+
 <body>
 
-<h2 id="status">RESET TEST</h2>
+<header>MONTBLOCK – Factory System</header>
 
-<button onclick="test()">Tap me</button>
+<nav>
+<button onclick="show('dash')">Dashboard</button>
+<button onclick="show('cement')">Cement</button>
+<button onclick="show('sales')">Sales</button>
+</nav>
+
+<section id="dash" class="card">
+<h3>Dashboard</h3>
+<p>This is the dashboard.</p>
+</section>
+
+<section id="cement" class="card">
+<h3>Cement</h3>
+<p>Cement section works.</p>
+</section>
+
+<section id="sales" class="card">
+<h3>Sales</h3>
+<p>Sales section works.</p>
+</section>
 
 <script>
-function test(){
-  document.getElementById("status").innerText = "JS IS 100% WORKING ✅";
+function show(id){
+  document.querySelectorAll("section").forEach(s=>s.style.display="none");
+  document.getElementById(id).style.display="block";
 }
+show("dash");
 </script>
 
 </body>
