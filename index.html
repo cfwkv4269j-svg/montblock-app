@@ -8,24 +8,32 @@
 <style>
 body{font-family:Arial;margin:0;background:#f4f4f4}
 header{background:#000;color:#fff;padding:15px;text-align:center;font-weight:bold}
-nav{display:flex;flex-wrap:wrap;justify-content:center;background:#ddd}
-nav button{padding:12px;margin:6px;border:none;background:#000;color:#fff;border-radius:6px}
+nav{background:#ddd;padding:10px}
+nav button{
+  width:100%;margin:6px 0;padding:14px;
+  background:#000;color:#fff;border:none;border-radius:6px;
+  font-size:16px
+}
 section{display:none;padding:15px}
 .card{background:#fff;padding:15px;border-radius:6px;margin-bottom:15px}
-input,select,button{width:100%;padding:10px;margin:6px 0}
+input,select,button{
+  width:100%;padding:10px;margin:6px 0;
+  border:1px solid #ccc;border-radius:5px;font-size:15px
+}
 hr{margin:15px 0}
-.item{border-bottom:1px solid #ddd;padding:8px 0}
+.item{border-bottom:1px solid #ddd;padding:10px 0}
 .small{font-size:13px;color:#555}
-.sellBtn{background:#0a7d0a;color:#fff}
-.expBtn{background:#b00020;color:#fff}
+.editBtn{background:#666;color:#fff}
+.delBtn{background:#b00020;color:#fff}
 .exportBtn{background:#004aad;color:#fff}
 
-/* ✅ FIX: make date inputs visible on mobile */
-input[type="date"]{
-  background:#fff !important;
-  color:#000 !important;
-  opacity:1 !important;
-  border:1px solid #ccc;
+/* ✅ DATE VISIBILITY FIX */
+.date-label{
+  display:block;
+  font-size:14px;
+  color:#000;
+  margin-bottom:4px;
+  font-weight:bold;
 }
 
 @media print{
@@ -36,6 +44,7 @@ input[type="date"]{
 </head>
 
 <body>
+
 <header>MONTBLOCK – Factory System</header>
 
 <nav>
@@ -48,26 +57,40 @@ input[type="date"]{
 <button onclick="show('report')">Reports</button>
 </nav>
 
-<section id="dash" class="card"></section>
+<section id="dash" class="card">
+<h3>Dashboard</h3>
+<p><b>Cement Stock:</b> <span id="cstock">0</span> bags</p>
+<hr>
+<p>4" Blocks: <span id="b4">0</span></p>
+<p>5" Blocks: <span id="b5">0</span></p>
+<p>6" Blocks: <span id="b6">0</span></p>
+<hr>
+<p><b>Total Sales:</b> TZS <span id="tsales">0</span></p>
+<p><b>Total Expenses:</b> TZS <span id="texp">0</span></p>
+<p><b>Profit:</b> TZS <span id="profit">0</span></p>
+</section>
 
 <section id="cement" class="card">
 <h3>Cement IN</h3>
-<input type="date" id="cin_date">
-<input id="cin_bags" type="number" placeholder="Bags purchased">
-<input id="cin_price" type="number" placeholder="Price per bag">
+<span class="date-label" id="cdate_label"></span>
+<input type="date" id="cdate" onchange="syncDate('cdate')">
+<input id="cbags" type="number" placeholder="Bags purchased">
+<input id="cprice" type="number" placeholder="Price per bag">
 <button onclick="cementIn()">Save Cement IN</button>
 
 <hr>
 
 <h3>Cement OUT</h3>
-<input type="date" id="cout_date">
-<input id="cout_bags" type="number" placeholder="Bags used">
+<span class="date-label" id="codate_label"></span>
+<input type="date" id="codate" onchange="syncDate('codate')">
+<input id="cused" type="number" placeholder="Bags used">
 <button onclick="cementOut()">Save Cement OUT</button>
 </section>
 
 <section id="prod" class="card">
 <h3>Production</h3>
-<input type="date" id="pdate">
+<span class="date-label" id="pdate_label"></span>
+<input type="date" id="pdate" onchange="syncDate('pdate')">
 <select id="psize">
 <option value="4">4 inch</option>
 <option value="5">5 inch</option>
@@ -79,7 +102,8 @@ input[type="date"]{
 
 <section id="sale" class="card">
 <h3>Sales</h3>
-<input type="date" id="sdate">
+<span class="date-label" id="sdate_label"></span>
+<input type="date" id="sdate" onchange="syncDate('sdate')">
 <select id="ssize">
 <option value="4">4 inch</option>
 <option value="5">5 inch</option>
@@ -87,15 +111,16 @@ input[type="date"]{
 </select>
 <input id="sqty" type="number" placeholder="Quantity sold">
 <input id="sprice" type="number" placeholder="Price per block">
-<button class="sellBtn" onclick="saveSale()">Save Sale</button>
+<button onclick="saveSale()">Save Sale</button>
 </section>
 
 <section id="exp" class="card">
 <h3>Expense</h3>
-<input type="date" id="edate">
-<input id="ename" placeholder="Expense name">
+<span class="date-label" id="edate_label"></span>
+<input type="date" id="edate" onchange="syncDate('edate')">
+<input id="etype" placeholder="Expense description">
 <input id="eamt" type="number" placeholder="Amount">
-<button class="expBtn" onclick="saveExpense()">Save Expense</button>
+<button onclick="saveExpense()">Save Expense</button>
 </section>
 
 <section id="history" class="card">
@@ -105,85 +130,107 @@ input[type="date"]{
 
 <section id="report" class="card">
 <h3>Reports</h3>
+<span class="date-label">From</span>
 <input type="date" id="rfrom">
+<span class="date-label">To</span>
 <input type="date" id="rto">
-<button onclick="renderReport()">Generate Report</button>
+<button onclick="genReport()">Generate Report</button>
 <hr>
 <div id="rout"></div>
 <button class="exportBtn" onclick="window.print()">Print / Save PDF</button>
 </section>
 
 <script>
-let store=JSON.parse(localStorage.getItem("montblock_v61"))||{
-cement:0,blocks:{4:0,5:0,6:0},sales:0,expenses:0,records:[]
+let db = JSON.parse(localStorage.getItem("montblock_v6")) || {
+ cement:0,b4:0,b5:0,b6:0,sales:0,exp:0,log:[]
 };
 
-function save(){localStorage.setItem("montblock_v61",JSON.stringify(store));renderDash();}
-function show(id){document.querySelectorAll("section").forEach(s=>s.style.display="none");document.getElementById(id).style.display="block";if(id==="history")renderHistory();if(id==="report")renderReport();}
-function today(d){return d||new Date().toDateString();}
+function save(){localStorage.setItem("montblock_v6",JSON.stringify(db));render();}
+
+function today(){return new Date().toISOString().slice(0,10)}
+
+function syncDate(id){
+ const el=document.getElementById(id);
+ const lbl=document.getElementById(id+"_label");
+ if(lbl) lbl.innerText="Date: "+(el.value||today());
+}
+
+function show(id){
+ document.querySelectorAll("section").forEach(s=>s.style.display="none");
+ document.getElementById(id).style.display="block";
+ if(id==="history") renderHistory();
+}
 
 function cementIn(){
-store.cement+=+cin_bags.value;
-store.records.push({t:"Cement IN",d:today(cin_date.value),txt:`Bags ${cin_bags.value} @ ${cin_price.value}`});
-save();
+ let b=+cbags.value,p=+cprice.value;
+ if(!b||!p)return;
+ db.cement+=b;
+ db.exp+=b*p;
+ db.log.unshift({t:"Cement IN",d:cdate.value||today(),txt:`${b} bags @ ${p}`});
+ save();cbags.value=cprice.value="";
 }
 
 function cementOut(){
-store.cement-=+cout_bags.value;
-store.records.push({t:"Cement OUT",d:today(cout_date.value),txt:`Bags used ${cout_bags.value}`});
-save();
+ let u=+cused.value;if(!u)return;
+ db.cement-=u;
+ db.log.unshift({t:"Cement OUT",d:codate.value||today(),txt:`${u} bags used`});
+ save();cused.value="";
 }
 
 function saveProd(){
-store.blocks[psize.value]+=+pqty.value;
-store.records.push({t:"Production",d:today(pdate.value),txt:`${psize.value}" Qty ${pqty.value}`});
-save();
+ let q=+pqty.value,s=psize.value;if(!q)return;
+ db["b"+s]+=q;
+ db.log.unshift({t:"Production",d:pdate.value||today(),txt:`${s}" Qty ${q}`});
+ save();pqty.value="";
 }
 
 function saveSale(){
-store.blocks[ssize.value]-=+sqty.value;
-let amt=sqty.value*sprice.value;
-store.sales+=amt;
-store.records.push({t:"Sale",d:today(sdate.value),txt:`${ssize.value}" Qty ${sqty.value} = ${amt}`});
-save();
+ let q=+sqty.value,p=+sprice.value,s=ssize.value;
+ if(!q||!p)return;
+ db["b"+s]-=q;
+ db.sales+=q*p;
+ db.log.unshift({t:"Sale",d:sdate.value||today(),txt:`${s}" ${q} @ ${p}`});
+ save();sqty.value=sprice.value="";
 }
 
 function saveExpense(){
-store.expenses+=+eamt.value;
-store.records.push({t:"Expense",d:today(edate.value),txt:`${ename.value} – ${eamt.value}`});
-save();
+ let a=+eamt.value;if(!a)return;
+ db.exp+=a;
+ db.log.unshift({t:"Expense",d:edate.value||today(),txt:`${etype.value} – ${a}`});
+ save();etype.value=eamt.value="";
 }
 
-function renderDash(){
-dash.innerHTML=`
-<h3>Dashboard</h3>
-<b>Cement Stock:</b> ${store.cement} bags<hr>
-4" Blocks: ${store.blocks[4]}<br>
-5" Blocks: ${store.blocks[5]}<br>
-6" Blocks: ${store.blocks[6]}<hr>
-<b>Total Sales:</b> ${store.sales}<br>
-<b>Total Expenses:</b> ${store.expenses}<br>
-<b>Profit:</b> ${store.sales-store.expenses}
-`;
+function render(){
+ cstock.innerText=db.cement;
+ b4.innerText=db.b4;b5.innerText=db.b5;b6.innerText=db.b6;
+ tsales.innerText=db.sales;
+ texp.innerText=db.exp;
+ profit.innerText=db.sales-db.exp;
 }
 
 function renderHistory(){
-hlist.innerHTML="";
-store.records.slice().reverse().forEach(r=>{
-hlist.innerHTML+=`<div class="item"><b>${r.t}</b><br>${r.txt}<br><span class="small">${r.d}</span></div>`;
-});
+ hlist.innerHTML="";
+ db.log.forEach(x=>{
+  hlist.innerHTML+=`
+  <div class="item">
+   <b>${x.t}</b><br>${x.txt}
+   <div class="small">${x.d}</div>
+  </div>`;
+ });
 }
 
-function renderReport(){
-rout.innerHTML=`
-<b>Sales:</b> ${store.sales}<br>
-<b>Expenses:</b> ${store.expenses}<br>
-<b>Profit:</b> ${store.sales-store.expenses}
-`;
+function genReport(){
+ rout.innerHTML=db.log.map(x=>`${x.d} – ${x.t}: ${x.txt}`).join("<br>");
 }
 
-renderDash();
-show('dash');
+window.onload=()=>{
+ ["cdate","codate","pdate","sdate","edate"].forEach(id=>{
+  document.getElementById(id).value=today();
+  syncDate(id);
+ });
+ render();show("dash");
+}
 </script>
+
 </body>
 </html>
