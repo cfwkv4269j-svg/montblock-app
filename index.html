@@ -10,21 +10,33 @@ body{font-family:Arial;margin:0;background:#f4f4f4}
 header{background:#000;color:#fff;padding:15px;text-align:center;font-weight:bold}
 nav{background:#ddd;padding:10px}
 nav button{
- width:100%;margin:6px 0;padding:14px;
- background:#000;color:#fff;border:none;border-radius:6px;
- font-size:16px
+  width:100%;margin:6px 0;padding:14px;
+  background:#000;color:#fff;border:none;border-radius:6px;
+  font-size:16px
 }
 section{display:none;padding:15px}
 .card{background:#fff;padding:15px;border-radius:6px;margin-bottom:15px}
 input,select,button{
- width:100%;padding:10px;margin:6px 0;
- border:1px solid #ccc;border-radius:5px;font-size:15px
+  width:100%;padding:10px;margin:6px 0;
+  border:1px solid #ccc;border-radius:5px;font-size:15px
 }
+hr{margin:15px 0}
 .item{border-bottom:1px solid #ddd;padding:10px 0}
 .small{font-size:13px;color:#555}
 .exportBtn{background:#004aad;color:#fff}
-.date-label{font-size:14px;font-weight:bold;margin-top:6px;display:block}
-@media print{nav,button{display:none}}
+
+.date-label{
+  display:block;
+  font-size:14px;
+  color:#000;
+  margin-bottom:4px;
+  font-weight:bold;
+}
+
+@media print{
+  nav,button{display:none}
+  body{background:#fff}
+}
 </style>
 </head>
 
@@ -59,13 +71,17 @@ input,select,button{
 <!-- CEMENT -->
 <section id="cement" class="card">
 <h3>Cement IN</h3>
-<input type="date" id="cdate">
+<span class="date-label" id="cdate_label"></span>
+<input type="date" id="cdate" onchange="syncDate('cdate')">
 <input id="cbags" type="number" placeholder="Bags purchased">
 <input id="cprice" type="number" placeholder="Price per bag">
 <button onclick="cementIn()">Save Cement IN</button>
+
 <hr>
+
 <h3>Cement OUT</h3>
-<input type="date" id="codate">
+<span class="date-label" id="codate_label"></span>
+<input type="date" id="codate" onchange="syncDate('codate')">
 <input id="cused" type="number" placeholder="Bags used">
 <button onclick="cementOut()">Save Cement OUT</button>
 </section>
@@ -73,7 +89,8 @@ input,select,button{
 <!-- PRODUCTION -->
 <section id="prod" class="card">
 <h3>Production</h3>
-<input type="date" id="pdate">
+<span class="date-label" id="pdate_label"></span>
+<input type="date" id="pdate" onchange="syncDate('pdate')">
 <select id="psize">
 <option value="4">4 inch</option>
 <option value="5">5 inch</option>
@@ -86,7 +103,8 @@ input,select,button{
 <!-- SALES -->
 <section id="sale" class="card">
 <h3>Sales</h3>
-<input type="date" id="sdate">
+<span class="date-label" id="sdate_label"></span>
+<input type="date" id="sdate" onchange="syncDate('sdate')">
 <select id="ssize">
 <option value="4">4 inch</option>
 <option value="5">5 inch</option>
@@ -100,7 +118,8 @@ input,select,button{
 <!-- EXPENSE -->
 <section id="exp" class="card">
 <h3>Expense</h3>
-<input type="date" id="edate">
+<span class="date-label" id="edate_label"></span>
+<input type="date" id="edate" onchange="syncDate('edate')">
 <input id="etype" placeholder="Expense description">
 <input id="eamt" type="number" placeholder="Amount">
 <button onclick="saveExpense()">Save Expense</button>
@@ -108,7 +127,7 @@ input,select,button{
 
 <!-- HISTORY -->
 <section id="history" class="card">
-<h3>History</h3>
+<h3>History (Latest First)</h3>
 <div id="hlist"></div>
 </section>
 
@@ -126,21 +145,37 @@ input,select,button{
 </section>
 
 <script>
-let db=JSON.parse(localStorage.getItem("montblock_v6"))||{cement:0,b4:0,b5:0,b6:0,sales:0,exp:0,log:[]};
-const today=()=>new Date().toISOString().slice(0,10);
+let db = JSON.parse(localStorage.getItem("montblock_v6")) || {
+ cement:0,b4:0,b5:0,b6:0,sales:0,exp:0,log:[]
+};
+
+function save(){
+ localStorage.setItem("montblock_v6",JSON.stringify(db));
+ render();
+}
+
+function today(){return new Date().toISOString().slice(0,10)}
+
+function syncDate(id){
+ const el=document.getElementById(id);
+ const lbl=document.getElementById(id+"_label");
+ if(lbl) lbl.innerText="Date: "+(el.value||today());
+}
 
 function show(id){
  document.querySelectorAll("section").forEach(s=>s.style.display="none");
  document.getElementById(id).style.display="block";
  if(id==="history") renderHistory();
+ if(id==="report") genReport();
 }
 
-function save(){localStorage.setItem("montblock_v6",JSON.stringify(db));render();}
-
 function cementIn(){
- let b=+cbags.value,p=+cprice.value;if(!b||!p)return;
- let t=b*p;db.cement+=b;db.exp+=t;
- db.log.unshift({t:"Cement IN",d:cdate.value||today(),txt:`${b} bags @ ${p} = ${t}`});
+ let b=+cbags.value,p=+cprice.value;
+ if(!b||!p)return;
+ let total=b*p;
+ db.cement+=b;
+ db.exp+=total;
+ db.log.unshift({t:"Cement IN",d:cdate.value||today(),txt:`${b} bags @ ${p}`});
  save();
 }
 
@@ -159,9 +194,12 @@ function saveProd(){
 }
 
 function saveSale(){
- let q=+sqty.value,p=+sprice.value,s=ssize.value;if(!q||!p)return;
- let t=q*p;db["b"+s]-=q;db.sales+=t;
- db.log.unshift({t:"Sale",d:sdate.value||today(),txt:`${s}" ${q} @ ${p} = ${t}`});
+ let q=+sqty.value,p=+sprice.value,s=ssize.value;
+ if(!q||!p)return;
+ let total=q*p;
+ db["b"+s]-=q;
+ db.sales+=total;
+ db.log.unshift({t:"Sale",d:sdate.value||today(),txt:`${s}" ${q} @ ${p}`});
  save();
 }
 
@@ -182,23 +220,50 @@ function render(){
  profit.innerText=(db.sales-db.exp).toLocaleString();
 }
 
+/* DISPLAY-ONLY normalization for History & Reports */
+function normalize(x){
+ let txt=x.txt;
+
+ if(x.t==="Sale"){
+  let m=txt.match(/(\d+)\s@\s(\d+)/);
+  if(m) txt=`${txt} = ${(m[1]*m[2]).toLocaleString()}`;
+ }
+
+ if(x.t==="Cement IN"){
+  let m=txt.match(/(\d+)\s*bags?\s*@\s*(\d+)/i);
+  if(m) txt=`${txt} = ${(m[1]*m[2]).toLocaleString()}`;
+ }
+
+ return txt;
+}
+
 function renderHistory(){
  hlist.innerHTML="";
  db.log.forEach(x=>{
-  hlist.innerHTML+=`<div class="item"><b>${x.t}</b><br>${x.txt.replace(/= (\d+)/,(_,n)=>"= "+Number(n).toLocaleString())}<div class="small">${x.d}</div></div>`;
+  hlist.innerHTML+=`
+   <div class="item">
+    <b>${x.t}</b><br>${normalize(x)}
+    <div class="small">${x.d}</div>
+   </div>`;
  });
 }
 
 function genReport(){
- let f=rfrom.value||"0000-00-00",t=rto.value||"9999-99-99";
- rout.innerHTML=db.log.filter(x=>x.d>=f&&x.d<=t)
- .map(x=>`${x.d} – ${x.t}: ${x.txt.replace(/= (\d+)/,(_,n)=>"= "+Number(n).toLocaleString())}`)
- .join("<br>");
+ let from=rfrom.value||"0000-00-00";
+ let to=rto.value||"9999-99-99";
+ rout.innerHTML=db.log
+  .filter(x=>x.d>=from && x.d<=to)
+  .map(x=>`${x.d} – ${x.t}: ${normalize(x)}`)
+  .join("<br>");
 }
 
 window.onload=()=>{
- ["cdate","codate","pdate","sdate","edate","rfrom","rto"].forEach(id=>document.getElementById(id).value=today());
- render();show("dash");
+ ["cdate","codate","pdate","sdate","edate","rfrom","rto"].forEach(id=>{
+  document.getElementById(id).value=today();
+  syncDate(id);
+ });
+ render();
+ show("dash");
 }
 </script>
 
