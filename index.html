@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MONTBLOCK – Factory System v1.3</title>
+<title>MONTBLOCK – Factory System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -67,6 +67,59 @@ hr{margin:15px 0}
 <p><b>Profit:</b> TZS <span id="profit">0</span></p>
 </section>
 
+<section id="cement" class="card">
+<h3>Cement IN</h3>
+<span class="date-label" id="cdate_label"></span>
+<input type="date" id="cdate" onchange="syncDate('cdate')">
+<input id="cbags" type="number" placeholder="Bags purchased">
+<input id="cprice" type="number" placeholder="Price per bag">
+<button onclick="cementIn()">Save Cement IN</button>
+
+<hr>
+
+<h3>Cement OUT</h3>
+<span class="date-label" id="codate_label"></span>
+<input type="date" id="codate" onchange="syncDate('codate')">
+<input id="cused" type="number" placeholder="Bags used">
+<button onclick="cementOut()">Save Cement OUT</button>
+</section>
+
+<section id="prod" class="card">
+<h3>Production</h3>
+<span class="date-label" id="pdate_label"></span>
+<input type="date" id="pdate" onchange="syncDate('pdate')">
+<select id="psize">
+<option value="4">4 inch</option>
+<option value="5">5 inch</option>
+<option value="6">6 inch</option>
+</select>
+<input id="pqty" type="number" placeholder="Quantity">
+<button onclick="saveProd()">Save Production</button>
+</section>
+
+<section id="sale" class="card">
+<h3>Sales</h3>
+<span class="date-label" id="sdate_label"></span>
+<input type="date" id="sdate" onchange="syncDate('sdate')">
+<select id="ssize">
+<option value="4">4 inch</option>
+<option value="5">5 inch</option>
+<option value="6">6 inch</option>
+</select>
+<input id="sqty" type="number" placeholder="Quantity sold">
+<input id="sprice" type="number" placeholder="Price per block">
+<button onclick="saveSale()">Save Sale</button>
+</section>
+
+<section id="exp" class="card">
+<h3>Expense</h3>
+<span class="date-label" id="edate_label"></span>
+<input type="date" id="edate" onchange="syncDate('edate')">
+<input id="etype" placeholder="Expense description">
+<input id="eamt" type="number" placeholder="Amount">
+<button onclick="saveExpense()">Save Expense</button>
+</section>
+
 <section id="history" class="card">
 <h3>History (Latest First)</h3>
 <div id="hlist"></div>
@@ -75,12 +128,26 @@ hr{margin:15px 0}
 <section id="report" class="card">
 <h3>Reports</h3>
 <div id="rout"></div>
+<button class="exportBtn" onclick="window.print()">Print / Save PDF</button>
 </section>
 
 <script>
 let db = JSON.parse(localStorage.getItem("montblock_v6")) || {
  cement:0,b4:0,b5:0,b6:0,sales:0,exp:0,log:[]
 };
+
+function save(){
+ localStorage.setItem("montblock_v6",JSON.stringify(db));
+ render();
+}
+
+function today(){return new Date().toISOString().slice(0,10)}
+
+function syncDate(id){
+ const el=document.getElementById(id);
+ const lbl=document.getElementById(id+"_label");
+ if(lbl) lbl.innerText="Date: "+(el.value||today());
+}
 
 function show(id){
  document.querySelectorAll("section").forEach(s=>s.style.display="none");
@@ -89,67 +156,102 @@ function show(id){
  if(id==="report") genReport();
 }
 
-function render(){
- cstock.innerText = db.cement.toLocaleString();
- b4.innerText = db.b4.toLocaleString();
- b5.innerText = db.b5.toLocaleString();
- b6.innerText = db.b6.toLocaleString();
- tsales.innerText = db.sales.toLocaleString();
- texp.innerText = db.exp.toLocaleString();
- profit.innerText = (db.sales-db.exp).toLocaleString();
+function cementIn(){
+ let b=+cbags.value,p=+cprice.value;
+ if(!b||!p)return;
+ let total=b*p;
+ db.cement+=b;
+ db.exp+=total;
+ db.log.unshift({t:"Cement IN",d:cdate.value||today(),txt:`${b} bags @ ${p}`});
+ save();
 }
 
-/* 🔑 CORE FIX: ensure total exists, then format */
-function normalizeText(x){
- let txt = x.txt;
+function cementOut(){
+ let u=+cused.value;if(!u)return;
+ db.cement-=u;
+ db.log.unshift({t:"Cement OUT",d:codate.value||today(),txt:`${u} bags used`});
+ save();
+}
 
- // SALE: 60 @ 1000
- if(x.t==="Sale"){
-   let m = txt.match(/(\d+)\s@\s(\d+)/);
-   if(m){
-     let total = m[1]*m[2];
-     if(!txt.includes("=")) txt += " = " + total;
-   }
+function saveProd(){
+ let q=+pqty.value,s=psize.value;if(!q)return;
+ db["b"+s]+=q;
+ db.log.unshift({t:"Production",d:pdate.value||today(),txt:`${s}" Qty ${q}`});
+ save();
+}
+
+function saveSale(){
+ let q=+sqty.value,p=+sprice.value,s=ssize.value;
+ if(!q||!p)return;
+ let total=q*p;
+ db["b"+s]-=q;
+ db.sales+=total;
+ db.log.unshift({t:"Sale",d:sdate.value||today(),txt:`${s}" ${q} @ ${p}`});
+ save();
+}
+
+function saveExpense(){
+ let a=+eamt.value;if(!a)return;
+ db.exp+=a;
+ db.log.unshift({t:"Expense",d:edate.value||today(),txt:`${etype.value} – ${a}`});
+ save();
+}
+
+function render(){
+ cstock.innerText=db.cement.toLocaleString();
+ b4.innerText=db.b4.toLocaleString();
+ b5.innerText=db.b5.toLocaleString();
+ b6.innerText=db.b6.toLocaleString();
+ tsales.innerText=db.sales.toLocaleString();
+ texp.innerText=db.exp.toLocaleString();
+ profit.innerText=(db.sales-db.exp).toLocaleString();
+}
+
+function normalize(txt,type){
+ if(type==="Sale"){
+  let m=txt.match(/(\d+)\s@\s(\d+)/);
+  if(m){
+   let t=m[1]*m[2];
+   if(!txt.includes("=")) txt+=` = ${t}`;
+  }
  }
-
- // CEMENT IN: 100 bags @ 16750
- if(x.t==="Cement IN"){
-   let m = txt.match(/(\d+)\s*bags?\s*@\s*(\d+)/i);
-   if(m){
-     let total = m[1]*m[2];
-     if(!txt.includes("=")) txt += " = " + total;
-   }
+ if(type==="Cement IN"){
+  let m=txt.match(/(\d+)\s*bags?\s*@\s*(\d+)/i);
+  if(m){
+   let t=m[1]*m[2];
+   if(!txt.includes("=")) txt+=` = ${t}`;
+  }
  }
-
- // FORMAT COMMAS
- let m2 = txt.match(/=\s*(\d+)/);
+ let m2=txt.match(/=\s*(\d+)/);
  if(m2){
-   let formatted = Number(m2[1]).toLocaleString();
-   txt = txt.replace(/=\s*\d+/, "= " + formatted);
+  txt=txt.replace(/=\s*\d+/,`= ${Number(m2[1]).toLocaleString()}`);
  }
-
  return txt;
 }
 
 function renderHistory(){
  hlist.innerHTML="";
  db.log.forEach(x=>{
-   let txt = normalizeText(x);
-   hlist.innerHTML += `
-     <div class="item">
-       <b>${x.t}</b><br>${txt}
-       <div class="small">${x.d}</div>
-     </div>`;
+  let txt=normalize(x.txt,x.t);
+  hlist.innerHTML+=`
+   <div class="item">
+    <b>${x.t}</b><br>${txt}
+    <div class="small">${x.d}</div>
+   </div>`;
  });
 }
 
 function genReport(){
- rout.innerHTML = db.log.map(x=>{
-   return `${x.d} – ${x.t}: ${normalizeText(x)}`;
+ rout.innerHTML=db.log.map(x=>{
+  return `${x.d} – ${x.t}: ${normalize(x.txt,x.t)}`;
  }).join("<br>");
 }
 
 window.onload=()=>{
+ ["cdate","codate","pdate","sdate","edate"].forEach(id=>{
+  document.getElementById(id).value=today();
+  syncDate(id);
+ });
  render();
  show("dash");
 }
