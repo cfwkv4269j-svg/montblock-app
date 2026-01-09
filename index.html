@@ -208,18 +208,21 @@ function render(){
  profit.innerText = (db.sales-db.exp).toLocaleString();
 }
 
-function formatTotal(txt){
- const m = txt.match(/=\s*(\d+)/);
- if(!m) return txt;
- const n = Number(m[1]).toLocaleString();
- return txt.replace(/=\s*\d+/, `= ${n}`);
-}
-
 function renderHistory(){
  hlist.innerHTML="";
  db.log.forEach(x=>{
-  let txt = x.txt;
-  if(txt.includes("=")) txt = formatTotal(txt);
+  let txt=x.txt;
+
+  if(x.t==="Sale" && !txt.includes("=")){
+    const m=txt.match(/(\d+)\s@\s(\d+)/);
+    if(m) txt=`${txt} = ${m[1]*m[2]}`;
+  }
+
+  if(x.t==="Cement IN" && !txt.includes("=")){
+    const m=txt.match(/(\d+)\s*bags?\s*@\s*(\d+)/i);
+    if(m) txt=`${txt} = ${m[1]*m[2]}`;
+  }
+
   hlist.innerHTML+=`
   <div class="item">
    <b>${x.t}</b><br>${txt}
@@ -229,9 +232,19 @@ function renderHistory(){
 }
 
 function genReport(){
- rout.innerHTML = db.log.map(x=>{
-  let txt = x.txt;
-  if(txt.includes("=")) txt = formatTotal(txt);
+ rout.innerHTML=db.log.map(x=>{
+  let txt=x.txt;
+
+  if(x.t==="Sale" && !txt.includes("=")){
+    const m=txt.match(/(\d+)\s@\s(\d+)/);
+    if(m) txt=`${txt} = ${m[1]*m[2]}`;
+  }
+
+  if(x.t==="Cement IN" && !txt.includes("=")){
+    const m=txt.match(/(\d+)\s*bags?\s*@\s*(\d+)/i);
+    if(m) txt=`${txt} = ${m[1]*m[2]}`;
+  }
+
   return `${x.d} – ${x.t}: ${txt}`;
  }).join("<br>");
 }
