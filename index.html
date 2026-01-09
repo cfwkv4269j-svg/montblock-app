@@ -210,10 +210,12 @@ function renderHistory(){
  hlist.innerHTML="";
  db.log.forEach(x=>{
   let txt=x.txt;
-  if(x.t==="Sale" && !txt.includes("=")){
+
+  if((x.t==="Sale" || x.t==="Cement IN") && !txt.includes("=")){
     const m=txt.match(/(\d+)\s@\s(\d+)/);
     if(m) txt=`${txt} = ${m[1]*m[2]}`;
   }
+
   hlist.innerHTML+=`
   <div class="item">
    <b>${x.t}</b><br>${txt}
@@ -225,10 +227,12 @@ function renderHistory(){
 function genReport(){
  rout.innerHTML=db.log.map(x=>{
   let txt=x.txt;
-  if(x.t==="Sale" && !txt.includes("=")){
+
+  if((x.t==="Sale" || x.t==="Cement IN") && !txt.includes("=")){
     const m=txt.match(/(\d+)\s@\s(\d+)/);
     if(m) txt=`${txt} = ${m[1]*m[2]}`;
   }
+
   return `${x.d} – ${x.t}: ${txt}`;
  }).join("<br>");
 }
