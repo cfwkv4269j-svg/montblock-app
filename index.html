@@ -23,20 +23,11 @@ input,select,button{
 hr{margin:15px 0}
 .item{border-bottom:1px solid #ddd;padding:10px 0}
 .small{font-size:13px;color:#555}
+.editBtn{background:#666;color:#fff}
+.delBtn{background:#b00020;color:#fff}
 .exportBtn{background:#004aad;color:#fff}
-
-.date-label{
-  display:block;
-  font-size:14px;
-  color:#000;
-  margin-bottom:4px;
-  font-weight:bold;
-}
-
-@media print{
-  nav,button{display:none}
-  body{background:#fff}
-}
+.date-label{display:block;font-size:14px;font-weight:bold;margin-bottom:4px}
+@media print{nav,button{display:none}}
 </style>
 </head>
 
@@ -76,9 +67,7 @@ hr{margin:15px 0}
 <input id="cbags" type="number" placeholder="Bags purchased">
 <input id="cprice" type="number" placeholder="Price per bag">
 <button onclick="cementIn()">Save Cement IN</button>
-
 <hr>
-
 <h3>Cement OUT</h3>
 <span class="date-label" id="codate_label"></span>
 <input type="date" id="codate" onchange="syncDate('codate')">
@@ -149,11 +138,7 @@ let db = JSON.parse(localStorage.getItem("montblock_v6")) || {
  cement:0,b4:0,b5:0,b6:0,sales:0,exp:0,log:[]
 };
 
-function save(){
- localStorage.setItem("montblock_v6",JSON.stringify(db));
- render();
-}
-
+function save(){localStorage.setItem("montblock_v6",JSON.stringify(db));render();}
 function today(){return new Date().toISOString().slice(0,10)}
 
 function syncDate(id){
@@ -170,11 +155,8 @@ function show(id){
 }
 
 function cementIn(){
- let b=+cbags.value,p=+cprice.value;
- if(!b||!p)return;
- let total=b*p;
- db.cement+=b;
- db.exp+=total;
+ let b=+cbags.value,p=+cprice.value;if(!b||!p)return;
+ let t=b*p;db.cement+=b;db.exp+=t;
  db.log.unshift({t:"Cement IN",d:cdate.value||today(),txt:`${b} bags @ ${p}`});
  save();
 }
@@ -194,11 +176,8 @@ function saveProd(){
 }
 
 function saveSale(){
- let q=+sqty.value,p=+sprice.value,s=ssize.value;
- if(!q||!p)return;
- let total=q*p;
- db["b"+s]-=q;
- db.sales+=total;
+ let q=+sqty.value,p=+sprice.value,s=ssize.value;if(!q||!p)return;
+ let t=q*p;db["b"+s]-=q;db.sales+=t;
  db.log.unshift({t:"Sale",d:sdate.value||today(),txt:`${s}" ${q} @ ${p}`});
  save();
 }
@@ -220,41 +199,75 @@ function render(){
  profit.innerText=(db.sales-db.exp).toLocaleString();
 }
 
-/* DISPLAY-ONLY normalization for History & Reports */
+function isToday(d){return d===today();}
+
+/* Reverse record safely */
+function reverse(x){
+ if(x.t==="Sale"){
+  let m=x.txt.match(/(\d+)"?\s(\d+)\s@\s(\d+)/);
+  if(m){db["b"+m[1]]+=+m[2];db.sales-=m[2]*m[3];}
+ }
+ if(x.t==="Cement IN"){
+  let m=x.txt.match(/(\d+)\sbags?\s@\s(\d+)/i);
+  if(m){db.cement-=+m[1];db.exp-=m[1]*m[2];}
+ }
+ if(x.t==="Expense"){
+  let m=x.txt.match(/–\s*(\d+)/);
+  if(m) db.exp-=+m[1];
+ }
+}
+
+/* Delete (same day only) */
+function del(i){
+ let x=db.log[i];
+ if(!isToday(x.d)) return alert("Cannot delete past records");
+ if(!confirm("Delete this record?")) return;
+ reverse(x);
+ db.log.splice(i,1);
+ save();
+}
+
+/* Edit (safe approach) */
+function edit(i){
+ let x=db.log[i];
+ if(!isToday(x.d)) return alert("Cannot edit past records");
+ alert("To edit: delete this record and re-enter correctly.");
+}
+
+/* Normalize for display */
 function normalize(x){
  let txt=x.txt;
-
  if(x.t==="Sale"){
   let m=txt.match(/(\d+)\s@\s(\d+)/);
   if(m) txt=`${txt} = ${(m[1]*m[2]).toLocaleString()}`;
  }
-
  if(x.t==="Cement IN"){
   let m=txt.match(/(\d+)\s*bags?\s*@\s*(\d+)/i);
   if(m) txt=`${txt} = ${(m[1]*m[2]).toLocaleString()}`;
  }
-
  return txt;
 }
 
 function renderHistory(){
  hlist.innerHTML="";
- db.log.forEach(x=>{
+ db.log.forEach((x,i)=>{
+  let btns=isToday(x.d)?`
+   <button class="editBtn" onclick="edit(${i})">Edit</button>
+   <button class="delBtn" onclick="del(${i})">Delete</button>`:"";
   hlist.innerHTML+=`
    <div class="item">
     <b>${x.t}</b><br>${normalize(x)}
     <div class="small">${x.d}</div>
+    ${btns}
    </div>`;
  });
 }
 
 function genReport(){
- let from=rfrom.value||"0000-00-00";
- let to=rto.value||"9999-99-99";
- rout.innerHTML=db.log
-  .filter(x=>x.d>=from && x.d<=to)
-  .map(x=>`${x.d} – ${x.t}: ${normalize(x)}`)
-  .join("<br>");
+ let f=rfrom.value||"0000-00-00",t=rto.value||"9999-99-99";
+ rout.innerHTML=db.log.filter(x=>x.d>=f&&x.d<=t)
+ .map(x=>`${x.d} – ${x.t}: ${normalize(x)}`)
+ .join("<br>");
 }
 
 window.onload=()=>{
@@ -262,8 +275,7 @@ window.onload=()=>{
   document.getElementById(id).value=today();
   syncDate(id);
  });
- render();
- show("dash");
+ render();show("dash");
 }
 </script>
 
