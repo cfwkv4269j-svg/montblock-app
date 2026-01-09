@@ -23,8 +23,6 @@ input,select,button{
 hr{margin:15px 0}
 .item{border-bottom:1px solid #ddd;padding:10px 0}
 .small{font-size:13px;color:#555}
-.editBtn{background:#666;color:#fff}
-.delBtn{background:#b00020;color:#fff}
 .exportBtn{background:#004aad;color:#fff}
 
 .date-label{
@@ -211,16 +209,28 @@ function render(){
 function renderHistory(){
  hlist.innerHTML="";
  db.log.forEach(x=>{
+  let txt=x.txt;
+  if(x.t==="Sale" && !txt.includes("=")){
+    const m=txt.match(/(\d+)\s@\s(\d+)/);
+    if(m) txt=`${txt} = ${m[1]*m[2]}`;
+  }
   hlist.innerHTML+=`
   <div class="item">
-   <b>${x.t}</b><br>${x.txt}
+   <b>${x.t}</b><br>${txt}
    <div class="small">${x.d}</div>
   </div>`;
  });
 }
 
 function genReport(){
- rout.innerHTML=db.log.map(x=>`${x.d} – ${x.t}: ${x.txt}`).join("<br>");
+ rout.innerHTML=db.log.map(x=>{
+  let txt=x.txt;
+  if(x.t==="Sale" && !txt.includes("=")){
+    const m=txt.match(/(\d+)\s@\s(\d+)/);
+    if(m) txt=`${txt} = ${m[1]*m[2]}`;
+  }
+  return `${x.d} – ${x.t}: ${txt}`;
+ }).join("<br>");
 }
 
 window.onload=()=>{
