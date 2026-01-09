@@ -211,8 +211,15 @@ function renderHistory(){
  db.log.forEach(x=>{
   let txt=x.txt;
 
-  if((x.t==="Sale" || x.t==="Cement IN") && !txt.includes("=")){
+  // ✅ SALE: 60 @ 1000
+  if(x.t==="Sale" && !txt.includes("=")){
     const m=txt.match(/(\d+)\s@\s(\d+)/);
+    if(m) txt=`${txt} = ${m[1]*m[2]}`;
+  }
+
+  // ✅ CEMENT IN: 100 bags @ 16750
+  if(x.t==="Cement IN" && !txt.includes("=")){
+    const m=txt.match(/(\d+)\s*bags?\s*@\s*(\d+)/i);
     if(m) txt=`${txt} = ${m[1]*m[2]}`;
   }
 
@@ -228,8 +235,13 @@ function genReport(){
  rout.innerHTML=db.log.map(x=>{
   let txt=x.txt;
 
-  if((x.t==="Sale" || x.t==="Cement IN") && !txt.includes("=")){
+  if(x.t==="Sale" && !txt.includes("=")){
     const m=txt.match(/(\d+)\s@\s(\d+)/);
+    if(m) txt=`${txt} = ${m[1]*m[2]}`;
+  }
+
+  if(x.t==="Cement IN" && !txt.includes("=")){
+    const m=txt.match(/(\d+)\s*bags?\s*@\s*(\d+)/i);
     if(m) txt=`${txt} = ${m[1]*m[2]}`;
   }
 
