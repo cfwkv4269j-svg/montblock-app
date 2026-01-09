@@ -199,11 +199,13 @@ function saveExpense(){
 }
 
 function render(){
- cstock.innerText=db.cement;
- b4.innerText=db.b4;b5.innerText=db.b5;b6.innerText=db.b6;
- tsales.innerText=db.sales;
- texp.innerText=db.exp;
- profit.innerText=db.sales-db.exp;
+ cstock.innerText = db.cement.toLocaleString();
+ b4.innerText = db.b4.toLocaleString();
+ b5.innerText = db.b5.toLocaleString();
+ b6.innerText = db.b6.toLocaleString();
+ tsales.innerText = db.sales.toLocaleString();
+ texp.innerText = db.exp.toLocaleString();
+ profit.innerText = (db.sales-db.exp).toLocaleString();
 }
 
 function renderHistory(){
@@ -211,13 +213,11 @@ function renderHistory(){
  db.log.forEach(x=>{
   let txt=x.txt;
 
-  // ✅ SALE: 60 @ 1000
   if(x.t==="Sale" && !txt.includes("=")){
     const m=txt.match(/(\d+)\s@\s(\d+)/);
     if(m) txt=`${txt} = ${m[1]*m[2]}`;
   }
 
-  // ✅ CEMENT IN: 100 bags @ 16750
   if(x.t==="Cement IN" && !txt.includes("=")){
     const m=txt.match(/(\d+)\s*bags?\s*@\s*(\d+)/i);
     if(m) txt=`${txt} = ${m[1]*m[2]}`;
