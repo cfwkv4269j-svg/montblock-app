@@ -35,7 +35,16 @@ hr{margin:15px 0}
 
 <header>MONTBLOCK – Factory System</header>
 
-<nav>
+<!-- LOGIN -->
+<section id="login" class="card">
+<h3>Login</h3>
+<input id="lemail" type="email" placeholder="Email">
+<input id="lpass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p class="small" id="lmsg"></p>
+</section>
+
+<nav id="nav" style="display:none">
 <button onclick="show('dash')">Dashboard</button>
 <button onclick="show('cement')">Cement</button>
 <button onclick="show('prod')">Production</button>
@@ -133,18 +142,49 @@ hr{margin:15px 0}
 <button class="exportBtn" onclick="window.print()">Print / Save PDF</button>
 </section>
 
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <script>
-let db = JSON.parse(localStorage.getItem("montblock_v6")) || {
- cement:0,b4:0,b5:0,b6:0,sales:0,exp:0,log:[]
+const firebaseConfig = {
+  apiKey: "AIzaSyD7gXGmqBejzmFt98ACn6PPXwB6CKqKkzI",
+  authDomain: "montblock-factory-app-36ec4.firebaseapp.com",
+  projectId: "montblock-factory-app-36ec4",
+  storageBucket: "montblock-factory-app-36ec4.firebasestorage.app",
+  messagingSenderId: "852488873488",
+  appId: "1:852488873488:web:34ade2820ea028aa790c95"
 };
 
-function save(){
- localStorage.setItem("montblock_v6",JSON.stringify(db));
- render();
- show("dash"); // ✅ return to dashboard after save
-}
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const fs = firebase.firestore();
+
+let docRef=null;
+let db={cement:0,b4:0,b5:0,b6:0,sales:0,exp:0,log:[]};
 
 function today(){return new Date().toISOString().slice(0,10)}
+
+function login(){
+ auth.signInWithEmailAndPassword(lemail.value,lpass.value)
+ .catch(e=>lmsg.innerText=e.message);
+}
+
+auth.onAuthStateChanged(u=>{
+ if(!u) return show('login');
+ nav.style.display="block";
+ fs.collection("montblock").doc(u.uid).get().then(d=>{
+  if(d.exists) db=d.data();
+  docRef=fs.collection("montblock").doc(u.uid);
+  render();show("dash");
+ });
+});
+
+function save(){
+ docRef.set(db);
+ render();show("dash");
+}
 
 function syncDate(id){
  const el=document.getElementById(id);
@@ -161,42 +201,37 @@ function show(id){
 
 function cementIn(){
  let b=+cbags.value,p=+cprice.value;if(!b||!p)return;
- let t=b*p;db.cement+=b;db.exp+=t;
+ db.cement+=b;db.exp+=b*p;
  db.log.unshift({t:"Cement IN",d:cdate.value||today(),txt:`${b} bags @ ${p}`});
- cbags.value=cprice.value="";
- save();
+ cbags.value=cprice.value="";save();
 }
 
 function cementOut(){
  let u=+cused.value;if(!u)return;
  db.cement-=u;
  db.log.unshift({t:"Cement OUT",d:codate.value||today(),txt:`${u} bags used`});
- cused.value="";
- save();
+ cused.value="";save();
 }
 
 function saveProd(){
  let q=+pqty.value,s=psize.value;if(!q)return;
  db["b"+s]+=q;
  db.log.unshift({t:"Production",d:pdate.value||today(),txt:`${s}" Qty ${q}`});
- pqty.value="";
- save();
+ pqty.value="";save();
 }
 
 function saveSale(){
  let q=+sqty.value,p=+sprice.value,s=ssize.value;if(!q||!p)return;
- let t=q*p;db["b"+s]-=q;db.sales+=t;
+ db["b"+s]-=q;db.sales+=q*p;
  db.log.unshift({t:"Sale",d:sdate.value||today(),txt:`${s}" ${q} @ ${p}`});
- sqty.value=sprice.value="";
- save();
+ sqty.value=sprice.value="";save();
 }
 
 function saveExpense(){
  let a=+eamt.value;if(!a)return;
  db.exp+=a;
  db.log.unshift({t:"Expense",d:edate.value||today(),txt:`${etype.value} – ${a}`});
- etype.value=eamt.value="";
- save();
+ etype.value=eamt.value="";save();
 }
 
 function render(){
@@ -211,46 +246,15 @@ function render(){
 
 function isToday(d){return d===today();}
 
-function reverse(x){
- if(x.t==="Sale"){
-  let m=x.txt.match(/(\d+)\s@\s(\d+)/);
-  if(m){db.sales-=m[1]*m[2];}
- }
- if(x.t==="Cement IN"){
-  let m=x.txt.match(/(\d+)\sbags?\s@\s(\d+)/i);
-  if(m){db.cement-=+m[1];db.exp-=m[1]*m[2];}
- }
- if(x.t==="Expense"){
-  let m=x.txt.match(/–\s*(\d+)/);
-  if(m) db.exp-=+m[1];
- }
-}
-
-function del(i){
- let x=db.log[i];
- if(!isToday(x.d)) return alert("Cannot delete past records");
- if(!confirm("Delete this record?")) return;
- reverse(x);
- db.log.splice(i,1);
- renderHistory(); // ✅ refresh history immediately
- save();
-}
-
-function edit(i){
- let x=db.log[i];
- if(!isToday(x.d)) return alert("Cannot edit past records");
- alert("To edit: delete this record and re-enter correctly.");
-}
-
 function normalize(x){
  let txt=x.txt;
  if(x.t==="Sale"){
   let m=txt.match(/(\d+)\s@\s(\d+)/);
-  if(m) txt=`${txt} = ${(m[1]*m[2]).toLocaleString()}`;
+  if(m) txt+=` = ${(m[1]*m[2]).toLocaleString()}`;
  }
  if(x.t==="Cement IN"){
-  let m=txt.match(/(\d+)\s*bags?\s*@\s*(\d+)/i);
-  if(m) txt=`${txt} = ${(m[1]*m[2]).toLocaleString()}`;
+  let m=txt.match(/(\d+)\sbags?\s@\s(\d+)/i);
+  if(m) txt+=` = ${(m[1]*m[2]).toLocaleString()}`;
  }
  return txt;
 }
@@ -259,15 +263,19 @@ function renderHistory(){
  hlist.innerHTML="";
  db.log.forEach((x,i)=>{
   let btns=isToday(x.d)?`
-   <button class="editBtn" onclick="edit(${i})">Edit</button>
+   <button class="editBtn" onclick="alert('Delete and re-enter to edit')">Edit</button>
    <button class="delBtn" onclick="del(${i})">Delete</button>`:"";
   hlist.innerHTML+=`
    <div class="item">
     <b>${x.t}</b><br>${normalize(x)}
-    <div class="small">${x.d}</div>
-    ${btns}
+    <div class="small">${x.d}</div>${btns}
    </div>`;
  });
+}
+
+function del(i){
+ if(!confirm("Delete this record?"))return;
+ db.log.splice(i,1);save();renderHistory();
 }
 
 function genReport(){
@@ -282,7 +290,7 @@ window.onload=()=>{
   document.getElementById(id).value=today();
   syncDate(id);
  });
- render();show("dash");
+ show("login");
 }
 </script>
 
