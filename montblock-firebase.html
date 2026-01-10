@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MONTBLOCK – Factory System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{font-family:Arial;margin:0;background:#f4f4f4}
+header{background:#000;color:#fff;padding:15px;text-align:center;font-weight:bold}
+nav{background:#ddd;padding:10px}
+nav button{
+  width:100%;margin:6px 0;padding:14px;
+  background:#000;color:#fff;border:none;border-radius:6px;
+  font-size:16px
+}
+section{display:none;padding:15px}
+.card{background:#fff;padding:15px;border-radius:6px;margin-bottom:15px}
+input,select,button{
+  width:100%;padding:10px;margin:6px 0;
+  border:1px solid #ccc;border-radius:5px;font-size:15px
+}
+hr{margin:15px 0}
+.item{border-bottom:1px solid #ddd;padding:10px 0}
+.small{font-size:13px;color:#555}
+.editBtn{background:#666;color:#fff}
+.delBtn{background:#b00020;color:#fff}
+.exportBtn{background:#004aad;color:#fff}
+.date-label{display:block;font-size:14px;font-weight:bold;margin-bottom:4px}
+@media print{nav,button{display:none}}
+</style>
+</head>
+
+<body>
+
+<header>MONTBLOCK – Factory System</header>
+
+<!-- LOGIN -->
+<section id="login" class="card">
+<h3>Login</h3>
+<input id="lemail" type="email" placeholder="Email">
+<input id="lpass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p class="small" id="lmsg"></p>
+</section>
+
+<nav id="nav" style="display:none">
+<button onclick="show('dash')">Dashboard</button>
+<button onclick="show('cement')">Cement</button>
+<button onclick="show('prod')">Production</button>
+<button onclick="show('sale')">Sales</button>
+<button onclick="show('exp')">Expenses</button>
+<button onclick="show('history')">History</button>
+<button onclick="show('report')">Reports</button>
+</nav>
+
+<!-- DASHBOARD -->
+<section id="dash" class="card">
+<h3>Dashboard</h3>
+<p><b>Cement Stock:</b> <span id="cstock">0</span> bags</p>
+<hr>
+<p>4" Blocks: <span id="b4">0</span></p>
+<p>5" Blocks: <span id="b5">0</span></p>
+<p>6" Blocks: <span id="b6">0</span></p>
+<hr>
+<p><b>Total Sales:</b> TZS <span id="tsales">0</span></p>
+<p><b>Total Expenses:</b> TZS <span id="texp">0</span></p>
+<p><b>Profit:</b> TZS <span id="profit">0</span></p>
+</section>
+
+<!-- CEMENT -->
+<section id="cement" class="card">
+<h3>Cement IN</h3>
+<span class="date-label" id="cdate_label"></span>
+<input type="date" id="cdate" onchange="syncDate('cdate')">
+<input id="cbags" type="number" placeholder="Bags purchased">
+<input id="cprice" type="number" placeholder="Price per bag">
+<button onclick="cementIn()">Save Cement IN</button>
+<hr>
+<h3>Cement OUT</h3>
+<span class="date-label" id="codate_label"></span>
+<input type="date" id="codate" onchange="syncDate('codate')">
+<input id="cused" type="number" placeholder="Bags used">
+<button onclick="cementOut()">Save Cement OUT</button>
+</section>
+
+<!-- PRODUCTION -->
+<section id="prod" class="card">
+<h3>Production</h3>
+<span class="date-label" id="pdate_label"></span>
+<input type="date" id="pdate" onchange="syncDate('pdate')">
+<select id="psize">
+<option value="4">4 inch</option>
+<option value="5">5 inch</option>
+<option value="6">6 inch</option>
+</select>
+<input id="pqty" type="number" placeholder="Quantity">
+<button onclick="saveProd()">Save Production</button>
+</section>
+
+<!-- SALES -->
+<section id="sale" class="card">
+<h3>Sales</h3>
+<span class="date-label" id="sdate_label"></span>
+<input type="date" id="sdate" onchange="syncDate('sdate')">
+<select id="ssize">
+<option value="4">4 inch</option>
+<option value="5">5 inch</option>
+<option value="6">6 inch</option>
+</select>
+<input id="sqty" type="number" placeholder="Quantity sold">
+<input id="sprice" type="number" placeholder="Price per block">
+<button onclick="saveSale()">Save Sale</button>
+</section>
+
+<!-- EXPENSE -->
+<section id="exp" class="card">
+<h3>Expense</h3>
+<span class="date-label" id="edate_label"></span>
+<input type="date" id="edate" onchange="syncDate('edate')">
+<input id="etype" placeholder="Expense description">
+<input id="eamt" type="number" placeholder="Amount">
+<button onclick="saveExpense()">Save Expense</button>
+</section>
+
+<!-- HISTORY -->
+<section id="history" class="card">
+<h3>History (Latest First)</h3>
+<div id="hlist"></div>
+</section>
+
+<!-- REPORT -->
+<section id="report" class="card">
+<h3>Reports</h3>
+<span class="date-label">From</span>
+<input type="date" id="rfrom">
+<span class="date-label">To</span>
+<input type="date" id="rto">
+<button onclick="genReport()">Generate Report</button>
+<hr>
+<div id="rout"></div>
+<button class="exportBtn" onclick="window.print()">Print / Save PDF</button>
+</section>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyD7gXGmqBejzmFt98ACn6PPXwB6CKqKkzI",
+  authDomain: "montblock-factory-app-36ec4.firebaseapp.com",
+  projectId: "montblock-factory-app-36ec4",
+  storageBucket: "montblock-factory-app-36ec4.firebasestorage.app",
+  messagingSenderId: "852488873488",
+  appId: "1:852488873488:web:34ade2820ea028aa790c95"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const fs = firebase.firestore();
+
+let docRef=null;
+let db={cement:0,b4:0,b5:0,b6:0,sales:0,exp:0,log:[]};
+
+function today(){return new Date().toISOString().slice(0,10)}
+
+function login(){
+ auth.signInWithEmailAndPassword(lemail.value,lpass.value)
+ .catch(e=>lmsg.innerText=e.message);
+}
+
+auth.onAuthStateChanged(u=>{
+ if(!u) return show('login');
+ nav.style.display="block";
+ fs.collection("montblock").doc(u.uid).get().then(d=>{
+  if(d.exists) db=d.data();
+  docRef=fs.collection("montblock").doc(u.uid);
+  render();show("dash");
+ });
+});
+
+function save(){
+ docRef.set(db);
+ render();show("dash");
+}
+
+function syncDate(id){
+ const el=document.getElementById(id);
+ const lbl=document.getElementById(id+"_label");
+ if(lbl) lbl.innerText="Date: "+(el.value||today());
+}
+
+function show(id){
+ document.querySelectorAll("section").forEach(s=>s.style.display="none");
+ document.getElementById(id).style.display="block";
+ if(id==="history") renderHistory();
+ if(id==="report") genReport();
+}
+
+function cementIn(){
+ let b=+cbags.value,p=+cprice.value;if(!b||!p)return;
+ db.cement+=b;db.exp+=b*p;
+ db.log.unshift({t:"Cement IN",d:cdate.value||today(),txt:`${b} bags @ ${p}`});
+ cbags.value=cprice.value="";save();
+}
+
+function cementOut(){
+ let u=+cused.value;if(!u)return;
+ db.cement-=u;
+ db.log.unshift({t:"Cement OUT",d:codate.value||today(),txt:`${u} bags used`});
+ cused.value="";save();
+}
+
+function saveProd(){
+ let q=+pqty.value,s=psize.value;if(!q)return;
+ db["b"+s]+=q;
+ db.log.unshift({t:"Production",d:pdate.value||today(),txt:`${s}" Qty ${q}`});
+ pqty.value="";save();
+}
+
+function saveSale(){
+ let q=+sqty.value,p=+sprice.value,s=ssize.value;if(!q||!p)return;
+ db["b"+s]-=q;db.sales+=q*p;
+ db.log.unshift({t:"Sale",d:sdate.value||today(),txt:`${s}" ${q} @ ${p}`});
+ sqty.value=sprice.value="";save();
+}
+
+function saveExpense(){
+ let a=+eamt.value;if(!a)return;
+ db.exp+=a;
+ db.log.unshift({t:"Expense",d:edate.value||today(),txt:`${etype.value} – ${a}`});
+ etype.value=eamt.value="";save();
+}
+
+function render(){
+ cstock.innerText=db.cement.toLocaleString();
+ b4.innerText=db.b4.toLocaleString();
+ b5.innerText=db.b5.toLocaleString();
+ b6.innerText=db.b6.toLocaleString();
+ tsales.innerText=db.sales.toLocaleString();
+ texp.innerText=db.exp.toLocaleString();
+ profit.innerText=(db.sales-db.exp).toLocaleString();
+}
+
+function isToday(d){return d===today();}
+
+function normalize(x){
+ let txt=x.txt;
+ if(x.t==="Sale"){
+  let m=txt.match(/(\d+)\s@\s(\d+)/);
+  if(m) txt+=` = ${(m[1]*m[2]).toLocaleString()}`;
+ }
+ if(x.t==="Cement IN"){
+  let m=txt.match(/(\d+)\sbags?\s@\s(\d+)/i);
+  if(m) txt+=` = ${(m[1]*m[2]).toLocaleString()}`;
+ }
+ return txt;
+}
+
+function renderHistory(){
+ hlist.innerHTML="";
+ db.log.forEach((x,i)=>{
+  let btns=isToday(x.d)?`
+   <button class="editBtn" onclick="alert('Delete and re-enter to edit')">Edit</button>
+   <button class="delBtn" onclick="del(${i})">Delete</button>`:"";
+  hlist.innerHTML+=`
+   <div class="item">
+    <b>${x.t}</b><br>${normalize(x)}
+    <div class="small">${x.d}</div>${btns}
+   </div>`;
+ });
+}
+
+function del(i){
+ if(!confirm("Delete this record?"))return;
+ db.log.splice(i,1);save();renderHistory();
+}
+
+function genReport(){
+ let f=rfrom.value||"0000-00-00",t=rto.value||"9999-99-99";
+ rout.innerHTML=db.log.filter(x=>x.d>=f&&x.d<=t)
+ .map(x=>`${x.d} – ${x.t}: ${normalize(x)}`)
+ .join("<br>");
+}
+
+window.onload=()=>{
+ ["cdate","codate","pdate","sdate","edate","rfrom","rto"].forEach(id=>{
+  document.getElementById(id).value=today();
+  syncDate(id);
+ });
+ show("login");
+}
+</script>
+
+</body>
+</html>
