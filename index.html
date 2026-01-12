@@ -66,6 +66,7 @@ hr{margin:15px 0}
 <p><b>Total Sales:</b> TZS <span id="tsales">0</span></p>
 <p><b>Total Expenses:</b> TZS <span id="texp">0</span></p>
 <p><b>Profit:</b> TZS <span id="profit">0</span></p>
+<p><b>Cash Balance:</b> TZS <span id="cash">0</span></p>
 </section>
 
 <!-- CEMENT -->
@@ -161,8 +162,8 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const fs = firebase.firestore();
 
-let docRef=null;
 let db={cement:0,b4:0,b5:0,b6:0,sales:0,exp:0,log:[]};
+let docRef=null;
 
 function today(){return new Date().toISOString().slice(0,10)}
 
@@ -242,9 +243,8 @@ function render(){
  tsales.innerText=db.sales.toLocaleString();
  texp.innerText=db.exp.toLocaleString();
  profit.innerText=(db.sales-db.exp).toLocaleString();
+ cash.innerText=(db.sales-db.exp).toLocaleString();
 }
-
-function isToday(d){return d===today();}
 
 function normalize(x){
  let txt=x.txt;
@@ -261,21 +261,13 @@ function normalize(x){
 
 function renderHistory(){
  hlist.innerHTML="";
- db.log.forEach((x,i)=>{
-  let btns=isToday(x.d)?`
-   <button class="editBtn" onclick="alert('Delete and re-enter to edit')">Edit</button>
-   <button class="delBtn" onclick="del(${i})">Delete</button>`:"";
+ db.log.forEach(x=>{
   hlist.innerHTML+=`
    <div class="item">
     <b>${x.t}</b><br>${normalize(x)}
-    <div class="small">${x.d}</div>${btns}
+    <div class="small">${x.d}</div>
    </div>`;
  });
-}
-
-function del(i){
- if(!confirm("Delete this record?"))return;
- db.log.splice(i,1);save();renderHistory();
 }
 
 function genReport(){
