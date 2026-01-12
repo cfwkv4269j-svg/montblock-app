@@ -66,7 +66,6 @@ hr{margin:15px 0}
 <p><b>Total Sales:</b> TZS <span id="tsales">0</span></p>
 <p><b>Total Expenses:</b> TZS <span id="texp">0</span></p>
 <p><b>Profit:</b> TZS <span id="profit">0</span></p>
-<p><b>Cash Balance:</b> TZS <span id="cash">0</span></p>
 </section>
 
 <!-- CEMENT -->
@@ -143,22 +142,27 @@ hr{margin:15px 0}
 <button class="exportBtn" onclick="window.print()">Print / Save PDF</button>
 </section>
 
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-firebase.initializeApp({
-  apiKey:"AIzaSyD7gXGmqBejzmFt98ACn6PPXwB6CKqKkzI",
-  authDomain:"montblock-factory-app-36ec4.firebaseapp.com",
-  projectId:"montblock-factory-app-36ec4"
-});
+const firebaseConfig = {
+  apiKey: "AIzaSyD7gXGmqBejzmFt98ACn6PPXwB6CKqKkzI",
+  authDomain: "montblock-factory-app-36ec4.firebaseapp.com",
+  projectId: "montblock-factory-app-36ec4",
+  storageBucket: "montblock-factory-app-36ec4.firebasestorage.app",
+  messagingSenderId: "852488873488",
+  appId: "1:852488873488:web:34ade2820ea028aa790c95"
+};
 
-const auth=firebase.auth();
-const fs=firebase.firestore();
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const fs = firebase.firestore();
 
 let docRef=null;
-let db={cement:0,b4:0,b5:0,b6:0,sales:0,exp:0,cash:0,log:[]};
+let db={cement:0,b4:0,b5:0,b6:0,sales:0,exp:0,log:[]};
 
 function today(){return new Date().toISOString().slice(0,10)}
 
@@ -218,10 +222,7 @@ function saveProd(){
 
 function saveSale(){
  let q=+sqty.value,p=+sprice.value,s=ssize.value;if(!q||!p)return;
- let amt=q*p;
- db["b"+s]-=q;
- db.sales+=amt;
- db.cash+=amt;  // ✅ CASH IN
+ db["b"+s]-=q;db.sales+=q*p;
  db.log.unshift({t:"Sale",d:sdate.value||today(),txt:`${s}" ${q} @ ${p}`});
  sqty.value=sprice.value="";save();
 }
@@ -229,7 +230,6 @@ function saveSale(){
 function saveExpense(){
  let a=+eamt.value;if(!a)return;
  db.exp+=a;
- db.cash-=a;   // ✅ CASH OUT
  db.log.unshift({t:"Expense",d:edate.value||today(),txt:`${etype.value} – ${a}`});
  etype.value=eamt.value="";save();
 }
@@ -242,8 +242,9 @@ function render(){
  tsales.innerText=db.sales.toLocaleString();
  texp.innerText=db.exp.toLocaleString();
  profit.innerText=(db.sales-db.exp).toLocaleString();
- cash.innerText=db.cash.toLocaleString();
 }
+
+function isToday(d){return d===today();}
 
 function normalize(x){
  let txt=x.txt;
