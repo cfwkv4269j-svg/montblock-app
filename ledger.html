@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>MONTBLOCK LEDGER</title>
 
-  <!-- iOS SAFE VIEWPORT -->
   <meta name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
@@ -24,43 +23,50 @@
   <div class="card">Expenses: <span id="expenses"></span></div>
 </section>
 
-<!-- BACKDATE (OPTIONAL – OWNER USE) -->
+<!-- BACKDATE -->
 <section>
+  <label><strong>Transaction Date</strong></label>
   <input type="date" onchange="setTxnDate(this.value)">
 </section>
 
 <section class="forms">
 
   <h2>Cash In</h2>
-  <input id="cashInAmount" type="number" inputmode="numeric" pattern="[0-9]*"
-         placeholder="Amount">
+  <input id="cashInAmount" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Amount">
   <button onclick="addCashIn()">Save</button>
 
   <h2>Add Expense</h2>
-  <input id="expenseAmount" type="number" inputmode="numeric" pattern="[0-9]*"
-         placeholder="Expense Amount">
+  <input id="expenseAmount" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Expense Amount">
   <button onclick="addExpense()">Save Expense</button>
 
   <h2>Company Debt (To Pay Later)</h2>
-  <input id="debtAmount" type="number" inputmode="numeric" pattern="[0-9]*"
-         placeholder="Debt Amount">
+  <input id="debtAmount" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Debt Amount">
   <input id="debtNote" placeholder="Note (optional)">
   <button onclick="addCompanyDebt()">Save Debt</button>
 
   <h2>Pay Company Debt</h2>
-  <input id="payDebtAmount" type="number" inputmode="numeric" pattern="[0-9]*"
-         placeholder="Amount Paid">
+  <input id="payDebtAmount" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Amount Paid">
   <button onclick="payCompanyDebt()">Pay Debt</button>
 
   <h2>Company Money Outside</h2>
-  <input id="outsideAmount" type="number" inputmode="numeric" pattern="[0-9]*"
-         placeholder="Amount Given">
+  <input id="outsideAmount" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Amount Given">
   <button onclick="addOutside()">Save</button>
 
 </section>
 
-<section>
+<!-- HISTORY FILTER -->
+<section id="historySection">
   <h2>Transaction History</h2>
+
+  <label>From</label>
+  <input type="date" id="fromDate">
+
+  <label>To</label>
+  <input type="date" id="toDate">
+
+  <button onclick="filterHistory()">Generate History</button>
+  <button onclick="printHistory()">Export / Print PDF</button>
+
   <ul id="historyList"></ul>
 
   <button onclick="deleteLast()">Delete Last Transaction</button>
