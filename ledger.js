@@ -1,3 +1,6 @@
+/***********************
+ * DATE (BACKDATE SUPPORT)
+ ***********************/
 let selectedTxnDate = null;
 
 function setTxnDate(d) {
@@ -7,7 +10,16 @@ function getTxnDate() {
   return selectedTxnDate || new Date().toISOString().split("T")[0];
 }
 
-/* ===== STORAGE ===== */
+/***********************
+ * MONEY FORMAT
+ ***********************/
+function fmt(n) {
+  return Number(n || 0).toLocaleString("en-US");
+}
+
+/***********************
+ * STORAGE
+ ***********************/
 let ledger = JSON.parse(localStorage.getItem("ledger")) || {
   capital: 9000000,
   cash: 0,
@@ -22,48 +34,71 @@ function save() {
   render();
 }
 
+/***********************
+ * RENDER
+ ***********************/
 function render() {
-  capital.innerText = ledger.capital.toLocaleString();
-  cash.innerText = ledger.cash.toLocaleString();
-  companyDebt.innerText = ledger.companyDebt.toLocaleString();
-  outside.innerText = ledger.outside.toLocaleString();
-  expenses.innerText = ledger.expenses.toLocaleString();
+  capital.innerText = fmt(ledger.capital);
+  cash.innerText = fmt(ledger.cash);
+  companyDebt.innerText = fmt(ledger.companyDebt);
+  outside.innerText = fmt(ledger.outside);
+  expenses.innerText = fmt(ledger.expenses);
 
   historyList.innerHTML = "";
   ledger.history.slice().reverse().forEach(h => {
     let li = document.createElement("li");
-    li.textContent = `${h.date} | ${h.type} | ${h.amount.toLocaleString()} ${h.note || ""}`;
+    li.textContent =
+      `${h.date} | ${h.type} | ${fmt(h.amount)}${h.note ? " | " + h.note : ""}`;
     historyList.appendChild(li);
   });
 }
 
-/* ===== CASH IN ===== */
+/***********************
+ * CASH IN
+ ***********************/
 function addCashIn() {
   let a = +cashInAmount.value;
   if (!a) return;
   ledger.cash += a;
-  ledger.history.push({ type: "Cash In", amount: a, date: getTxnDate() });
+  ledger.history.push({
+    type: "Cash In",
+    amount: a,
+    date: getTxnDate()
+  });
   cashInAmount.value = "";
   save();
 }
 
-/* ===== EXPENSE ===== */
+/***********************
+ * EXPENSE
+ ***********************/
 function addExpense() {
   let a = +expenseAmount.value;
   if (!a) return;
   ledger.cash -= a;
   ledger.expenses += a;
-  ledger.history.push({ type: "Expense", amount: a, date: getTxnDate() });
+  ledger.history.push({
+    type: "Expense",
+    amount: a,
+    date: getTxnDate()
+  });
   expenseAmount.value = "";
   save();
 }
 
-/* ===== COMPANY DEBT ===== */
+/***********************
+ * COMPANY DEBT
+ ***********************/
 function addCompanyDebt() {
   let a = +debtAmount.value;
   if (!a) return;
   ledger.companyDebt += a;
-  ledger.history.push({ type: "Company Debt Added", amount: a, note: debtNote.value, date: getTxnDate() });
+  ledger.history.push({
+    type: "Company Debt Added",
+    amount: a,
+    note: debtNote.value,
+    date: getTxnDate()
+  });
   debtAmount.value = "";
   debtNote.value = "";
   save();
@@ -75,34 +110,48 @@ function payCompanyDebt() {
   ledger.companyDebt -= a;
   ledger.cash -= a;
   ledger.expenses += a;
-  ledger.history.push({ type: "Company Debt Paid", amount: a, date: getTxnDate() });
+  ledger.history.push({
+    type: "Company Debt Paid",
+    amount: a,
+    date: getTxnDate()
+  });
   payDebtAmount.value = "";
   save();
 }
 
-/* ===== OUTSIDE ===== */
+/***********************
+ * MONEY OUTSIDE
+ ***********************/
 function addOutside() {
   let a = +outsideAmount.value;
   if (!a) return;
   ledger.cash -= a;
   ledger.outside += a;
-  ledger.history.push({ type: "Money Outside", amount: a, date: getTxnDate() });
+  ledger.history.push({
+    type: "Money Outside",
+    amount: a,
+    date: getTxnDate()
+  });
   outsideAmount.value = "";
   save();
 }
 
-/* ===== DELETE ===== */
+/***********************
+ * DELETE & RESET
+ ***********************/
 function deleteLast() {
-  if (!ledger.history.length) return alert("No history");
+  if (!ledger.history.length) return alert("No transactions to delete");
   ledger.history.pop();
   save();
 }
 
-/* ===== RESET ===== */
 function resetAll() {
   if (!confirm("RESET ALL DATA?")) return;
   localStorage.removeItem("ledger");
   location.reload();
 }
 
+/***********************
+ * INIT
+ ***********************/
 render();
