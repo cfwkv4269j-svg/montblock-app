@@ -8,8 +8,8 @@
 body {
   margin: 0;
   background: #f5f7f8;
-  font-size: 18px;               /* 🔥 FIX: readable text */
-  line-height: 1.5;
+  font-size: 18px;
+  line-height: 1.45;
 }
 
 /* ===== HEADER ===== */
@@ -17,18 +17,19 @@ header {
   background: #000;
   color: #fff;
   text-align: center;
-  padding: 18px;
+  padding: 16px;
 }
 
 header h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: 21px;
+  font-weight: 600;
 }
 
-/* ===== MAIN CONTAINER ===== */
+/* ===== SECTIONS ===== */
 section {
-  padding: 16px;
-  max-width: 720px;              /* 🔥 FIX: prevents squeezing */
+  padding: 12px;        /* compact but safe */
+  max-width: 720px;
   margin: auto;
 }
 
@@ -36,30 +37,33 @@ section {
 .dashboard {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 .card {
   background: #fff;
-  padding: 16px;
+  padding: 14px;
   border-radius: 10px;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 600;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
-/* ===== FORMS ===== */
+/* ===== FORM HEADINGS ===== */
 .forms h2 {
-  margin-top: 28px;
-  font-size: 20px;
+  margin-top: 22px;
+  margin-bottom: 8px;
+  font-size: 19px;
+  font-weight: 600;
 }
 
+/* ===== INPUTS ===== */
 input {
   width: 100%;
-  padding: 14px;
-  margin-top: 8px;
-  margin-bottom: 14px;
-  font-size: 18px;
+  padding: 13px;
+  margin-top: 6px;
+  margin-bottom: 10px;   /* reduced */
+  font-size: 17px;
   border-radius: 8px;
   border: 1px solid #ccc;
 }
@@ -67,15 +71,15 @@ input {
 /* ===== BUTTONS ===== */
 button {
   width: 100%;
-  padding: 16px;
-  font-size: 18px;
+  padding: 15px;
+  font-size: 17px;
   font-weight: bold;
   border-radius: 10px;
   border: none;
   background: #000;
   color: #fff;
   cursor: pointer;
-  margin-bottom: 18px;
+  margin-bottom: 14px;   /* reduced */
 }
 
 button:active {
@@ -86,21 +90,22 @@ button:active {
 #historyList {
   list-style: none;
   padding: 0;
+  margin-top: 10px;
 }
 
 #historyList li {
   background: #fff;
-  padding: 14px;
-  margin-bottom: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 15px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
-/* ===== MOBILE SAFETY ===== */
+/* ===== MOBILE OPTIMIZATION ===== */
 @media (max-width: 480px) {
   body {
-    font-size: 19px;
+    font-size: 18px;
   }
 
   .dashboard {
