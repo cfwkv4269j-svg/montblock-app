@@ -1,28 +1,13 @@
-/*************************************************
- * MONTBLOCK LEDGER – CORE LOGIC
- * Backdating supported (NO UI CHANGE)
- *************************************************/
-
-/* ===== BACKDATE SUPPORT ===== */
 let selectedTxnDate = null;
 
-// Set manually when you want to backdate
-// Example: setTxnDate("2026-01-08")
-function setTxnDate(dateString) {
-  selectedTxnDate = dateString;
+function setTxnDate(d) {
+  selectedTxnDate = d;
 }
-
-// Always returns a date (today if none selected)
 function getTxnDate() {
   return selectedTxnDate || new Date().toISOString().split("T")[0];
 }
 
-// Reset back to today
-function resetTxnDate() {
-  selectedTxnDate = null;
-}
-
-/* ===== INITIAL DATA ===== */
+/* ===== STORAGE ===== */
 let ledger = JSON.parse(localStorage.getItem("ledger")) || {
   capital: 9000000,
   cash: 0,
@@ -32,7 +17,6 @@ let ledger = JSON.parse(localStorage.getItem("ledger")) || {
   history: []
 };
 
-/* ===== SAVE & RENDER ===== */
 function save() {
   localStorage.setItem("ledger", JSON.stringify(ledger));
   render();
@@ -48,124 +32,77 @@ function render() {
   historyList.innerHTML = "";
   ledger.history.slice().reverse().forEach(h => {
     let li = document.createElement("li");
-    li.innerText = `${h.date} | ${h.type} | ${h.amount.toLocaleString()}${h.note ? " - " + h.note : ""}`;
+    li.textContent = `${h.date} | ${h.type} | ${h.amount.toLocaleString()} ${h.note || ""}`;
     historyList.appendChild(li);
   });
 }
 
 /* ===== CASH IN ===== */
 function addCashIn() {
-  let amt = +cashInAmount.value;
-  if (!amt) return;
-
-  ledger.cash += amt;
-
-  ledger.history.push({
-    type: "Cash In",
-    amount: amt,
-    date: getTxnDate()
-  });
-
+  let a = +cashInAmount.value;
+  if (!a) return;
+  ledger.cash += a;
+  ledger.history.push({ type: "Cash In", amount: a, date: getTxnDate() });
   cashInAmount.value = "";
   save();
 }
 
-/* ===== EXPENSE (PAID) ===== */
+/* ===== EXPENSE ===== */
 function addExpense() {
-  let amt = +expenseAmount.value;
-  if (!amt) return;
-
-  ledger.cash -= amt;
-  ledger.expenses += amt;
-
-  ledger.history.push({
-    type: "Expense Paid",
-    amount: amt,
-    date: getTxnDate()
-  });
-
+  let a = +expenseAmount.value;
+  if (!a) return;
+  ledger.cash -= a;
+  ledger.expenses += a;
+  ledger.history.push({ type: "Expense", amount: a, date: getTxnDate() });
   expenseAmount.value = "";
   save();
 }
 
-/* ===== ADD COMPANY DEBT ===== */
+/* ===== COMPANY DEBT ===== */
 function addCompanyDebt() {
-  let amt = +debtAmount.value;
-  if (!amt) return;
-
-  ledger.companyDebt += amt;
-
-  ledger.history.push({
-    type: "Company Debt Added",
-    amount: amt,
-    note: debtNote.value || "",
-    date: getTxnDate()
-  });
-
+  let a = +debtAmount.value;
+  if (!a) return;
+  ledger.companyDebt += a;
+  ledger.history.push({ type: "Company Debt Added", amount: a, note: debtNote.value, date: getTxnDate() });
   debtAmount.value = "";
   debtNote.value = "";
   save();
 }
 
-/* ===== PAY COMPANY DEBT ===== */
 function payCompanyDebt() {
-  let amt = +payDebtAmount.value;
-  if (!amt) return;
-  if (amt > ledger.companyDebt) {
-    alert("Amount is greater than company debt");
-    return;
-  }
-
-  ledger.companyDebt -= amt;
-  ledger.cash -= amt;
-  ledger.expenses += amt;
-
-  ledger.history.push({
-    type: "Company Debt Paid",
-    amount: amt,
-    date: getTxnDate()
-  });
-
+  let a = +payDebtAmount.value;
+  if (!a || a > ledger.companyDebt) return;
+  ledger.companyDebt -= a;
+  ledger.cash -= a;
+  ledger.expenses += a;
+  ledger.history.push({ type: "Company Debt Paid", amount: a, date: getTxnDate() });
   payDebtAmount.value = "";
   save();
 }
 
-/* ===== COMPANY MONEY OUTSIDE ===== */
+/* ===== OUTSIDE ===== */
 function addOutside() {
-  let amt = +outsideAmount.value;
-  if (!amt) return;
-
-  ledger.cash -= amt;
-  ledger.outside += amt;
-
-  ledger.history.push({
-    type: "Money Given Outside",
-    amount: amt,
-    date: getTxnDate()
-  });
-
+  let a = +outsideAmount.value;
+  if (!a) return;
+  ledger.cash -= a;
+  ledger.outside += a;
+  ledger.history.push({ type: "Money Outside", amount: a, date: getTxnDate() });
   outsideAmount.value = "";
   save();
 }
 
-/* ===== DELETE LAST TRANSACTION ===== */
+/* ===== DELETE ===== */
 function deleteLast() {
-  if (!ledger.history.length) {
-    alert("No transactions to delete");
-    return;
-  }
-
+  if (!ledger.history.length) return alert("No history");
   ledger.history.pop();
-  alert("Last transaction removed (totals unchanged)");
   save();
 }
 
-/* ===== RESET ALL DATA ===== */
+/* ===== RESET ===== */
 function resetAll() {
-  if (!confirm("Reset ALL data? This cannot be undone.")) return;
+  if (!confirm("RESET ALL DATA?")) return;
   localStorage.removeItem("ledger");
   location.reload();
 }
 
-/* ===== INITIAL RENDER ===== */
 render();
