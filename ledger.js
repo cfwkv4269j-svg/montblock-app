@@ -1,4 +1,4 @@
-/* ===== DATE (BACKDATE) ===== */
+/* ===== DATE ===== */
 let selectedTxnDate = null;
 function setTxnDate(d) {
   selectedTxnDate = d;
@@ -7,7 +7,7 @@ function getTxnDate() {
   return selectedTxnDate || new Date().toISOString().split("T")[0];
 }
 
-/* ===== FORMAT MONEY ===== */
+/* ===== FORMAT ===== */
 function fmt(n) {
   return Number(n || 0).toLocaleString("en-US");
 }
@@ -24,19 +24,22 @@ let ledger = JSON.parse(localStorage.getItem("ledger")) || {
 
 function save() {
   localStorage.setItem("ledger", JSON.stringify(ledger));
-  render();
+  renderHistory(ledger.history);
+  renderDashboard();
 }
 
 /* ===== RENDER ===== */
-function render() {
+function renderDashboard() {
   capital.innerText = fmt(ledger.capital);
   cash.innerText = fmt(ledger.cash);
   companyDebt.innerText = fmt(ledger.companyDebt);
   outside.innerText = fmt(ledger.outside);
   expenses.innerText = fmt(ledger.expenses);
+}
 
+function renderHistory(list) {
   historyList.innerHTML = "";
-  ledger.history.slice().reverse().forEach(h => {
+  list.slice().reverse().forEach(h => {
     const li = document.createElement("li");
     li.textContent =
       `${h.date} | ${h.type} | ${fmt(h.amount)}${h.note ? " | " + h.note : ""}`;
@@ -44,7 +47,26 @@ function render() {
   });
 }
 
-/* ===== CASH IN ===== */
+/* ===== FILTER ===== */
+function filterHistory() {
+  const from = fromDate.value;
+  const to = toDate.value;
+
+  const filtered = ledger.history.filter(h => {
+    if (from && h.date < from) return false;
+    if (to && h.date > to) return false;
+    return true;
+  });
+
+  renderHistory(filtered);
+}
+
+/* ===== PRINT ===== */
+function printHistory() {
+  window.print();
+}
+
+/* ===== TRANSACTIONS ===== */
 function addCashIn() {
   const a = +cashInAmount.value;
   if (!a) return;
@@ -54,7 +76,6 @@ function addCashIn() {
   save();
 }
 
-/* ===== EXPENSE ===== */
 function addExpense() {
   const a = +expenseAmount.value;
   if (!a) return;
@@ -65,7 +86,6 @@ function addExpense() {
   save();
 }
 
-/* ===== COMPANY DEBT ===== */
 function addCompanyDebt() {
   const a = +debtAmount.value;
   if (!a) return;
@@ -96,7 +116,6 @@ function payCompanyDebt() {
   save();
 }
 
-/* ===== MONEY OUTSIDE ===== */
 function addOutside() {
   const a = +outsideAmount.value;
   if (!a) return;
@@ -125,4 +144,5 @@ function resetAll() {
 }
 
 /* ===== INIT ===== */
-render();
+renderDashboard();
+renderHistory(ledger.history);
