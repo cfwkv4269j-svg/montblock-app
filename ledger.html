@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>MONTBLOCK LEDGER</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="ledger.css">
+  <link rel="stylesheet" href="ledger.css" />
 </head>
 <body>
 
@@ -15,31 +14,47 @@
 <section class="dashboard">
   <div class="card">Capital: <span id="capital"></span></div>
   <div class="card">Cash in Hand: <span id="cash"></span></div>
-  <div class="card">Customer Debts: <span id="debts"></span></div>
+  <div class="card">Company Debt: <span id="companyDebt"></span></div>
   <div class="card">Company Money Outside: <span id="outside"></span></div>
-  <div class="card">Unpaid Wages: <span id="wages"></span></div>
   <div class="card">Expenses: <span id="expenses"></span></div>
 </section>
 
+<!-- BACKDATE (HIDDEN OWNER TOOL) -->
+<input type="date" id="txnDate" onchange="setTxnDate(this.value)" />
+
 <section class="forms">
 
-  <h2>Add Sale</h2>
-  <input id="saleTotal" type="number" placeholder="Total Amount">
-  <input id="salePaid" type="number" placeholder="Amount Paid">
-  <button onclick="addSale()">Save Sale</button>
+  <h2>Cash In</h2>
+  <input id="cashInAmount" type="number" placeholder="Amount">
+  <button onclick="addCashIn()">Save</button>
 
   <h2>Add Expense</h2>
   <input id="expenseAmount" type="number" placeholder="Expense Amount">
   <button onclick="addExpense()">Save Expense</button>
 
+  <h2>Company Debt (To Pay Later)</h2>
+  <input id="debtAmount" type="number" placeholder="Debt Amount">
+  <input id="debtNote" placeholder="Note (optional)">
+  <button onclick="addCompanyDebt()">Save Debt</button>
+
+  <h2>Pay Company Debt</h2>
+  <input id="payDebtAmount" type="number" placeholder="Amount Paid">
+  <button onclick="payCompanyDebt()">Pay Debt</button>
+
   <h2>Company Money Outside</h2>
   <input id="outsideAmount" type="number" placeholder="Amount Given">
   <button onclick="addOutside()">Save</button>
 
-  <h2>Unpaid Wages</h2>
-  <input id="wageAmount" type="number" placeholder="Wage Amount">
-  <button onclick="addWage()">Save</button>
+</section>
 
+<section>
+  <h2>Transaction History</h2>
+  <ul id="historyList"></ul>
+</section>
+
+<section>
+  <button onclick="deleteLast()">Delete Last Transaction</button>
+  <button onclick="resetAll()">RESET ALL</button>
 </section>
 
 <script src="ledger.js"></script>
