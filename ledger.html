@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MONTBLOCK LEDGER</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="ledger.css">
+</head>
+<body>
+
+<header>
+  <h1>MONTBLOCK LEDGER</h1>
+</header>
+
+<section class="dashboard">
+  <div class="card">Capital: <span id="capital"></span></div>
+  <div class="card">Cash in Hand: <span id="cash"></span></div>
+  <div class="card">Customer Debts: <span id="debts"></span></div>
+  <div class="card">Company Money Outside: <span id="outside"></span></div>
+  <div class="card">Unpaid Wages: <span id="wages"></span></div>
+  <div class="card">Expenses: <span id="expenses"></span></div>
+</section>
+
+<section class="forms">
+
+  <h2>Add Sale</h2>
+  <input id="saleTotal" type="number" placeholder="Total Amount">
+  <input id="salePaid" type="number" placeholder="Amount Paid">
+  <button onclick="addSale()">Save Sale</button>
+
+  <h2>Add Expense</h2>
+  <input id="expenseAmount" type="number" placeholder="Expense Amount">
+  <button onclick="addExpense()">Save Expense</button>
+
+  <h2>Company Money Outside</h2>
+  <input id="outsideAmount" type="number" placeholder="Amount Given">
+  <button onclick="addOutside()">Save</button>
+
+  <h2>Unpaid Wages</h2>
+  <input id="wageAmount" type="number" placeholder="Wage Amount">
+  <button onclick="addWage()">Save</button>
+
+</section>
+
+<script src="ledger.js"></script>
+</body>
+</html>
