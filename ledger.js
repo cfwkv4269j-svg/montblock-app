@@ -1,8 +1,5 @@
-/***********************
- * DATE (BACKDATE SUPPORT)
- ***********************/
+/* ===== DATE (BACKDATE) ===== */
 let selectedTxnDate = null;
-
 function setTxnDate(d) {
   selectedTxnDate = d;
 }
@@ -10,16 +7,12 @@ function getTxnDate() {
   return selectedTxnDate || new Date().toISOString().split("T")[0];
 }
 
-/***********************
- * MONEY FORMAT
- ***********************/
+/* ===== FORMAT MONEY ===== */
 function fmt(n) {
   return Number(n || 0).toLocaleString("en-US");
 }
 
-/***********************
- * STORAGE
- ***********************/
+/* ===== STORAGE ===== */
 let ledger = JSON.parse(localStorage.getItem("ledger")) || {
   capital: 9000000,
   cash: 0,
@@ -34,9 +27,7 @@ function save() {
   render();
 }
 
-/***********************
- * RENDER
- ***********************/
+/* ===== RENDER ===== */
 function render() {
   capital.innerText = fmt(ledger.capital);
   cash.innerText = fmt(ledger.cash);
@@ -46,51 +37,37 @@ function render() {
 
   historyList.innerHTML = "";
   ledger.history.slice().reverse().forEach(h => {
-    let li = document.createElement("li");
+    const li = document.createElement("li");
     li.textContent =
       `${h.date} | ${h.type} | ${fmt(h.amount)}${h.note ? " | " + h.note : ""}`;
     historyList.appendChild(li);
   });
 }
 
-/***********************
- * CASH IN
- ***********************/
+/* ===== CASH IN ===== */
 function addCashIn() {
-  let a = +cashInAmount.value;
+  const a = +cashInAmount.value;
   if (!a) return;
   ledger.cash += a;
-  ledger.history.push({
-    type: "Cash In",
-    amount: a,
-    date: getTxnDate()
-  });
+  ledger.history.push({ type: "Cash In", amount: a, date: getTxnDate() });
   cashInAmount.value = "";
   save();
 }
 
-/***********************
- * EXPENSE
- ***********************/
+/* ===== EXPENSE ===== */
 function addExpense() {
-  let a = +expenseAmount.value;
+  const a = +expenseAmount.value;
   if (!a) return;
   ledger.cash -= a;
   ledger.expenses += a;
-  ledger.history.push({
-    type: "Expense",
-    amount: a,
-    date: getTxnDate()
-  });
+  ledger.history.push({ type: "Expense", amount: a, date: getTxnDate() });
   expenseAmount.value = "";
   save();
 }
 
-/***********************
- * COMPANY DEBT
- ***********************/
+/* ===== COMPANY DEBT ===== */
 function addCompanyDebt() {
-  let a = +debtAmount.value;
+  const a = +debtAmount.value;
   if (!a) return;
   ledger.companyDebt += a;
   ledger.history.push({
@@ -105,7 +82,7 @@ function addCompanyDebt() {
 }
 
 function payCompanyDebt() {
-  let a = +payDebtAmount.value;
+  const a = +payDebtAmount.value;
   if (!a || a > ledger.companyDebt) return;
   ledger.companyDebt -= a;
   ledger.cash -= a;
@@ -119,11 +96,9 @@ function payCompanyDebt() {
   save();
 }
 
-/***********************
- * MONEY OUTSIDE
- ***********************/
+/* ===== MONEY OUTSIDE ===== */
 function addOutside() {
-  let a = +outsideAmount.value;
+  const a = +outsideAmount.value;
   if (!a) return;
   ledger.cash -= a;
   ledger.outside += a;
@@ -136,11 +111,9 @@ function addOutside() {
   save();
 }
 
-/***********************
- * DELETE & RESET
- ***********************/
+/* ===== DELETE / RESET ===== */
 function deleteLast() {
-  if (!ledger.history.length) return alert("No transactions to delete");
+  if (!ledger.history.length) return alert("No transactions");
   ledger.history.pop();
   save();
 }
@@ -151,7 +124,5 @@ function resetAll() {
   location.reload();
 }
 
-/***********************
- * INIT
- ***********************/
+/* ===== INIT ===== */
 render();
