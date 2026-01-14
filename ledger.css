@@ -1,72 +1,103 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>MONTBLOCK LEDGER</title>
+* {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
 
-  <!-- iOS SAFE VIEWPORT -->
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+body {
+  margin: 0;
+  background: #f5f7f8;
+  font-size: 18px;
+  line-height: 1.45;
+}
 
-  <link rel="stylesheet" href="ledger.css">
-</head>
-<body>
+/* HEADER */
+header {
+  background: #000;
+  color: #fff;
+  text-align: center;
+  padding: 16px;
+}
 
-<header>
-  <h1>MONTBLOCK LEDGER</h1>
-</header>
+header h1 {
+  margin: 0;
+  font-size: 21px;
+}
 
-<section class="dashboard">
-  <div class="card">Capital: <span id="capital"></span></div>
-  <div class="card">Cash in Hand: <span id="cash"></span></div>
-  <div class="card">Company Debt: <span id="companyDebt"></span></div>
-  <div class="card">Company Money Outside: <span id="outside"></span></div>
-  <div class="card">Expenses: <span id="expenses"></span></div>
-</section>
+/* SECTIONS */
+section {
+  padding: 12px;
+  max-width: 720px;
+  margin: auto;
+}
 
-<!-- BACKDATE (OPTIONAL – OWNER USE) -->
-<section>
-  <input type="date" onchange="setTxnDate(this.value)">
-</section>
+/* DASHBOARD */
+.dashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
 
-<section class="forms">
+.card {
+  background: #fff;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
 
-  <h2>Cash In</h2>
-  <input id="cashInAmount" type="number" inputmode="numeric" pattern="[0-9]*"
-         placeholder="Amount">
-  <button onclick="addCashIn()">Save</button>
+/* FORMS */
+.forms h2 {
+  margin-top: 22px;
+  font-size: 19px;
+}
 
-  <h2>Add Expense</h2>
-  <input id="expenseAmount" type="number" inputmode="numeric" pattern="[0-9]*"
-         placeholder="Expense Amount">
-  <button onclick="addExpense()">Save Expense</button>
+input {
+  width: 100%;
+  padding: 13px;
+  margin-top: 6px;
+  margin-bottom: 10px;
+  font-size: 17px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  scroll-margin-top: 120px; /* iOS keyboard fix */
+}
 
-  <h2>Company Debt (To Pay Later)</h2>
-  <input id="debtAmount" type="number" inputmode="numeric" pattern="[0-9]*"
-         placeholder="Debt Amount">
-  <input id="debtNote" placeholder="Note (optional)">
-  <button onclick="addCompanyDebt()">Save Debt</button>
+button {
+  width: 100%;
+  padding: 15px;
+  font-size: 17px;
+  font-weight: bold;
+  border-radius: 10px;
+  border: none;
+  background: #000;
+  color: #fff;
+  cursor: pointer;
+  margin-bottom: 14px;
+}
 
-  <h2>Pay Company Debt</h2>
-  <input id="payDebtAmount" type="number" inputmode="numeric" pattern="[0-9]*"
-         placeholder="Amount Paid">
-  <button onclick="payCompanyDebt()">Pay Debt</button>
+button:active {
+  transform: scale(0.98);
+}
 
-  <h2>Company Money Outside</h2>
-  <input id="outsideAmount" type="number" inputmode="numeric" pattern="[0-9]*"
-         placeholder="Amount Given">
-  <button onclick="addOutside()">Save</button>
+/* HISTORY */
+#historyList {
+  list-style: none;
+  padding: 0;
+}
 
-</section>
+#historyList li {
+  background: #fff;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  font-size: 15px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
 
-<section>
-  <h2>Transaction History</h2>
-  <ul id="historyList"></ul>
-
-  <button onclick="deleteLast()">Delete Last Transaction</button>
-  <button onclick="resetAll()">RESET ALL</button>
-</section>
-
-<script src="ledger.js"></script>
-</body>
-</html>
+/* MOBILE */
+@media (max-width: 480px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+}
