@@ -1,60 +1,113 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  background: #f4f6f8;
+/* ===== GLOBAL RESET ===== */
+* {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
+/* ===== BODY ===== */
+body {
+  margin: 0;
+  background: #f5f7f8;
+  font-size: 18px;               /* 🔥 FIX: readable text */
+  line-height: 1.5;
+}
+
+/* ===== HEADER ===== */
 header {
-  background: #111;
+  background: #000;
   color: #fff;
-  padding: 16px;
   text-align: center;
+  padding: 18px;
 }
 
 header h1 {
   margin: 0;
-  font-size: 20px;
+  font-size: 22px;
 }
 
+/* ===== MAIN CONTAINER ===== */
+section {
+  padding: 16px;
+  max-width: 720px;              /* 🔥 FIX: prevents squeezing */
+  margin: auto;
+}
+
+/* ===== DASHBOARD ===== */
 .dashboard {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 12px;
 }
 
 .card {
-  background: #ffffff;
-  padding: 14px;
-  border-radius: 8px;
-  font-weight: bold;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  background: #fff;
+  padding: 16px;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
-.forms {
-  padding: 15px;
-}
-
+/* ===== FORMS ===== */
 .forms h2 {
-  margin-top: 20px;
-  font-size: 16px;
+  margin-top: 28px;
+  font-size: 20px;
 }
 
 input {
   width: 100%;
-  padding: 10px;
-  margin: 6px 0;
-  border-radius: 5px;
+  padding: 14px;
+  margin-top: 8px;
+  margin-bottom: 14px;
+  font-size: 18px;
+  border-radius: 8px;
   border: 1px solid #ccc;
 }
 
+/* ===== BUTTONS ===== */
 button {
   width: 100%;
-  padding: 12px;
-  margin-top: 5px;
+  padding: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 10px;
+  border: none;
   background: #000;
   color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 18px;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* ===== HISTORY ===== */
+#historyList {
+  list-style: none;
+  padding: 0;
+}
+
+#historyList li {
+  background: #fff;
+  padding: 14px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  font-size: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* ===== MOBILE SAFETY ===== */
+@media (max-width: 480px) {
+  body {
+    font-size: 19px;
+  }
+
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  header h1 {
+    font-size: 20px;
+  }
 }
