@@ -1,3 +1,21 @@
+// ===== BACKDATE SUPPORT (NO UI CHANGE) =====
+let selectedTxnDate = null;
+
+// Call this manually when you want to backdate
+// Format: YYYY-MM-DD  (example: "2026-01-08")
+function setTxnDate(dateString) {
+  selectedTxnDate = dateString;
+}
+
+// Always returns a date (today if none selected)
+function getTxnDate() {
+  return selectedTxnDate || new Date().toISOString().split("T")[0];
+}
+
+// Reset back to today after backdating
+function resetTxnDate() {
+  selectedTxnDate = null;
+}
 // INITIAL CAPITAL
 if (!localStorage.capital) {
   localStorage.capital = 9000000;
